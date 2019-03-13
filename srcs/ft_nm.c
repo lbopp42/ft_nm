@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/13 16:40:41 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/03/13 17:00:52 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ void	ft_nm(char *ptr)
 	struct mach_header_64		*header;
 	struct load_command		*lc;
 	int				i;
-	//struct symtab_command	*symtab;
+	struct symtab_command	*symtab;
 	struct segment_command_64	*seg_cmd;
 	struct section_64		section;
 
@@ -72,13 +72,13 @@ void	ft_nm(char *ptr)
 		i = 0;
 		while (i < ncmds)
 		{
-			//if (lc->cmd == LC_SYMTAB)
-			//{
-			//	printf("Ok c'est bon\n");
-			//	symtab = (struct symtab_command*)lc;
-			//	print_name(symtab->symoff, symtab->nsyms, symtab->stroff, ptr);
-			//	break;
-			//}
+			if (lc->cmd == LC_SYMTAB)
+			{
+				printf("Ok c'est bon\n");
+				symtab = (struct symtab_command*)lc;
+				print_name(symtab->symoff, symtab->nsyms, symtab->stroff, ptr);
+				break;
+			}
 			if (lc->cmd == LC_SEGMENT_64)
 			{
 				seg_cmd = (struct segment_command_64*)lc;
@@ -91,7 +91,7 @@ void	ft_nm(char *ptr)
 						printf("Load_command size = [%d]\n", lc->cmdsize);
 						for (uint32_t j = 0; j < seg_cmd->nsects; j++)
 						{
-							section = ((struct section_64*)(seg_cmd + 1))[j]; // TODO Pourquoi le "- 8" ?
+							section = ((struct section_64*)(seg_cmd + 1))[j]; // TODO j = (n_sec de nlist) - 1
 							printf("section name = [%s]\n", section.segname);
 							printf("section name = [%s]\n", section.sectname);
 						}
