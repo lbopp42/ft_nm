@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/13 10:34:55 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/03/13 16:40:41 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,12 +53,14 @@ void	print_name(int symoff, int nsyms, int stroff, void *ptr)
 
 void	ft_nm(char *ptr)
 {
-	int			ncmds;
-	unsigned int		magic_number;
-	struct mach_header_64	*header;
-	struct load_command	*lc;
-	int			i;
-	struct symtab_command	*symtab;
+	int				ncmds;
+	unsigned int			magic_number;
+	struct mach_header_64		*header;
+	struct load_command		*lc;
+	int				i;
+	//struct symtab_command	*symtab;
+	struct segment_command_64	*seg_cmd;
+	struct section_64		section;
 
 	magic_number = *(int *)ptr;
 	if (magic_number == MH_MAGIC_64)
@@ -66,15 +68,35 @@ void	ft_nm(char *ptr)
 		header = (struct mach_header_64*)ptr;
 		lc = (void*)ptr + sizeof(struct mach_header_64);
 		ncmds = header->ncmds;
+		printf("ncmds: %d\n",ncmds);
 		i = 0;
 		while (i < ncmds)
 		{
-			if (lc->cmd == LC_SYMTAB)
+			//if (lc->cmd == LC_SYMTAB)
+			//{
+			//	printf("Ok c'est bon\n");
+			//	symtab = (struct symtab_command*)lc;
+			//	print_name(symtab->symoff, symtab->nsyms, symtab->stroff, ptr);
+			//	break;
+			//}
+			if (lc->cmd == LC_SEGMENT_64)
 			{
-				printf("Ok c'est bon\n");
-				symtab = (struct symtab_command*)lc;
-				print_name(symtab->symoff, symtab->nsyms, symtab->stroff, ptr);
-				break;
+				seg_cmd = (struct segment_command_64*)lc;
+				if (!ft_strcmp(seg_cmd->segname, "__TEXT"))
+				{
+					printf("nsects: %d\n", seg_cmd->nsects);
+						printf("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n");
+						printf("Segname = [%s]\n", seg_cmd->segname);
+						printf("Size of segment = %d\n", seg_cmd->cmdsize);
+						printf("Load_command size = [%d]\n", lc->cmdsize);
+						for (uint32_t j = 0; j < seg_cmd->nsects; j++)
+						{
+							section = ((struct section_64*)(seg_cmd + 1))[j]; // TODO Pourquoi le "- 8" ?
+							printf("section name = [%s]\n", section.segname);
+							printf("section name = [%s]\n", section.sectname);
+						}
+						printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
+				}
 			}
 			lc = (void*)lc + lc->cmdsize;
 			i++;
