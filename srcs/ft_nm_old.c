@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/13 17:00:52 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/03/15 10:07:37 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,6 @@ void	ft_nm(char *ptr)
 		{
 			if (lc->cmd == LC_SYMTAB)
 			{
-				printf("Ok c'est bon\n");
 				symtab = (struct symtab_command*)lc;
 				print_name(symtab->symoff, symtab->nsyms, symtab->stroff, ptr);
 				break;
