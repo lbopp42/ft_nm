@@ -6,7 +6,7 @@
 #    By: lbopp <marvin@42.fr>                       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/12 10:03:24 by lbopp             #+#    #+#              #
-#    Updated: 2019/03/13 16:42:16 by lbopp            ###   ########.fr        #
+#    Updated: 2019/03/20 10:17:59 by lbopp            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ NAME = ft_nm
 CFLAGS = -Wall -Werror -Wextra
 LIBFT = libft/
 CC = clang
-SRC_NAME = ft_nm.c
+SRC_NAME = nm/ft_nm.c
 SRC_PATH = srcs
 SRC = $(addprefix $(SRC_PATH)/,$(SRC_NAME))
 OBJ = $(SRC:.c=.o)

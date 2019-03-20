@@ -1,0 +1,6 @@
+FAT FILE:
+- fat_arch peut exister en 32 bits et en 64 bits.
+- Tous les champs de fat arch sont stocke en big endian.
+- mach-o = ptr + sizeof(fat_header) + offset dans fat_arch (en little endian biensur).
+- Dans un fat file il faut trouver l'architecture 64 bits (comme notre host) et l'afficher.
+	Sinon il faut afficher a la suite chaque architecture.
