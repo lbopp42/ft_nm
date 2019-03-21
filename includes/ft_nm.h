@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/19 12:57:43 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/03/21 16:25:37 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,5 +22,28 @@
 #include <mach-o/fat.h>
 #include <errno.h>
 #include "libft.h"
+
+typedef union	u_value
+{
+	uint32_t	n_value32;
+	uint64_t	n_value64;
+}				t_value;
+
+typedef union	u_type
+{
+	int			is_absolute;
+	int			is_undef;
+}				t_type;
+
+typedef struct	s_data
+{
+	char		*name;
+	t_value		n_value;
+	char		*segment;
+	char		*section;
+	int			is_external;
+	int			is_pext;
+	t_type		type;
+}				t_data;
 
 #endif

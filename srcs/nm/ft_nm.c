@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/20 17:05:57 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/03/21 16:31:12 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,54 +54,71 @@ char	*get_section(struct load_command *lc, int n_sect, int ncmds)
 	return (NULL);
 }
 
-void	print_name_64(int symoff, int nsyms, int stroff, void *ptr)
+void	print_data(t_data *array, int size)
 {
-	char		*stringtable;
-	int		i;
-	struct nlist_64	*array;
-	char		*section;
+	int	i;
+	for (i = 0; i < size; i++)
+		printf("%016llx [%s]\n", array[i].n_value.n_value64, array[i].name);
+}
+
+void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
+{
 	struct mach_header_64		*header;
 
 	header = (struct mach_header_64*)ptr;
-	stringtable = ptr + stroff;
+	if (nlist.n_type & N_PEXT)
+	{
+		string_array->is_pext = 1;
+		printf("PEXTERNAL\n"); // TODO Quand c'est active, mettre lettre en minuscule (non-external)
+	}
+	if (nlist.n_type & N_TYPE)
+	{
+		printf("============================\n");
+		if (nlist.n_type & N_UNDF && nlist.n_sect == NO_SECT)
+		{
+			printf("UNDEF\n");
+			string_array->type.is_undef = 1;
+		}
+		else if (nlist.n_type & N_ABS && nlist.n_sect == NO_SECT)
+		{
+			string_array->type.is_absolute = 1;
+			printf("ABSOLUTE\n"); // TODO semble etre le 'A'
+		}
+		else if (nlist.n_type & N_SECT)
+			get_section(ptr + sizeof(struct mach_header_64), nlist.n_sect, header->ncmds);
+		//if (nlist.n_type & N_PBUD && nlist.n_sect == NO_SECT)
+		//	printf("PBUD\n");
+		//if (nlist.n_type & N_INDR)
+		//{
+		//	//TODO A comprendre
+		//	printf("INDR\n");
+		//}
+	}
+	if (nlist.n_type & N_EXT)
+	{
+		string_array->is_external = 1;
+		printf("EXTERNAL\n"); // SEMBLE ETRE 'U'
+	}
+}
+
+void	browse_symtab_64(int symoff, int nsyms, int stroff, void *ptr)
+{
+	int		i;
+	struct nlist_64	*array;
+	t_data		*string_array;
+
 	array = ptr + symoff;
 	i = 0;
+	printf("On creer un tableau de %d\n", nsyms);
+	string_array = (t_data*)malloc(nsyms * sizeof(t_data));
 	while (i < nsyms)
 	{
-		printf("%s\n", stringtable + array[i].n_un.n_strx);
-		if (array[i].n_type & N_PEXT)
-		{
-			printf("PEXTERNAL\n"); // TODO Quand c'est active, mettre lettre en minuscule (non-external)
-		}
-		if (array[i].n_type & N_TYPE)
-		{
-			printf("============================\n");
-			if (array[i].n_type & N_UNDF && array[i].n_sect == NO_SECT)
-				printf("UNDEF\n");
-			else if (array[i].n_type & N_ABS && array[i].n_sect == NO_SECT)
-				printf("ABSOLUTE\n"); // TODO semble etre le 'A'
-			else if (array[i].n_type & N_SECT)
-			{
-				section = get_section(ptr + sizeof(struct mach_header_64), array[i].n_sect, header->ncmds);
-				printf("SECTION = %s\n", section);
-				free(section);
-			}
-			if (array[i].n_type & N_PBUD && array[i].n_sect == NO_SECT)
-				printf("PBUD\n");
-			if (array[i].n_type & N_INDR)
-			{
-				//TODO A comprendre
-				printf("INDR\n");
-				printf("n_value = %llu\n", array[i].n_value);
-			}
-		}
-		if (array[i].n_type & N_EXT)
-		{
-			printf("EXTERNAL\n"); // SEMBLE ETRE 'U'
-		}
+		string_array[i].n_value.n_value64 = array[i].n_value;
+		string_array[i].name = ft_strdup(ptr + stroff + array[i].n_un.n_strx);
+		fill_data_64(&(string_array[i]), array[i], ptr);
 		i++;
 	}
-
+	print_data(string_array, nsyms);
 }
 
 void	print_name(int symoff, int nsyms, int stroff, void *ptr)
@@ -171,7 +188,7 @@ void	handle_64_big(const void *ptr)
 		{
 			printf("ON ENTRE\n");
 			symtab = (struct symtab_command*)lc;
-			print_name_64(symtab->symoff, symtab->nsyms, symtab->stroff, (void*)ptr);
+			browse_symtab_64(symtab->symoff, symtab->nsyms, symtab->stroff, (void*)ptr);
 			break;
 		}
 		lc = (void*)lc + lc->cmdsize;
@@ -191,11 +208,10 @@ void	browse_load_commands(void* ptr, struct load_command *lc, int ncmds, int mod
 		if (lc->cmd == LC_SYMTAB)
 		{
 			symtab = (struct symtab_command*)lc;
-			break;
 			if (mode == 1)
 				print_name(symtab->symoff, symtab->nsyms, symtab->stroff, (void*)ptr);
 			else
-				print_name_64(symtab->symoff, symtab->nsyms, symtab->stroff, (void*)ptr);
+				browse_symtab_64(symtab->symoff, symtab->nsyms, symtab->stroff, (void*)ptr);
 			break;
 		}
 		lc = (void*)lc + lc->cmdsize;

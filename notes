@@ -4,3 +4,8 @@ FAT FILE:
 - mach-o = ptr + sizeof(fat_header) + offset dans fat_arch (en little endian biensur).
 - Dans un fat file il faut trouver l'architecture 64 bits (comme notre host) et l'afficher.
 	Sinon il faut afficher a la suite chaque architecture.
+
+Organisation des donnees:
+- la string table = ptr + stroff (qui se trouve dans symtab_command)
+- Le nom du symbole est trouvable en additionnant stringtable + l'index n_strx dans n_un de nlist.
+- La value des symboles est stockee dans n_value dans nlist
