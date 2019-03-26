@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/21 16:25:37 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/03/26 15:10:37 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ typedef struct	s_data
 	char		*section;
 	int			is_external;
 	int			is_pext;
+	int			is_pbud;
 	t_type		type;
 }				t_data;
 
