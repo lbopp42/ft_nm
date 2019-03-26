@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/21 16:31:12 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/03/26 13:45:32 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,11 +54,70 @@ char	*get_section(struct load_command *lc, int n_sect, int ncmds)
 	return (NULL);
 }
 
+void	get_section_64(struct load_command *lc, int n_sect, int ncmds, t_data *data)
+{
+	int							i;
+	struct segment_command_64	*seg_cmd;
+	struct section_64			section;
+
+	i = 0;
+	while (i < ncmds)
+	{
+		if (lc->cmd == LC_SEGMENT_64)
+		{
+			seg_cmd = (struct segment_command_64*)lc;
+				if (n_sect && seg_cmd->nsects / n_sect)
+				{
+				    section = ((struct section_64*)(seg_cmd + 1))[n_sect - 1];
+					data->section = ft_strdup(section.sectname);
+					data->segment = ft_strdup(seg_cmd->segname);
+					return ;
+				}
+		}
+		lc = (void*)lc + lc->cmdsize;
+		i++;
+	}
+}
+
+void	get_section(struct load_command *lc, int n_sect, int ncmds, t_data *data)
+{
+	int							i;
+	struct segment_command	*seg_cmd;
+	struct section			section;
+
+	i = 0;
+	while (i < ncmds)
+	{
+		if (lc->cmd == LC_SEGMENT)
+		{
+			seg_cmd = (struct segment_command*)lc;
+				if (n_sect && seg_cmd->nsects / n_sect)
+				{
+				    section = ((struct section_64*)(seg_cmd + 1))[n_sect - 1];
+					data->section = ft_strdup(section.sectname);
+					data->segment = ft_strdup(seg_cmd->segname);
+					return ;
+				}
+		}
+		lc = (void*)lc + lc->cmdsize;
+		i++;
+	}
+}
+
 void	print_data(t_data *array, int size)
 {
 	int	i;
 	for (i = 0; i < size; i++)
-		printf("%016llx [%s]\n", array[i].n_value.n_value64, array[i].name);
+	{
+		printf("%016llx ", array[i].n_value.n_value64);
+		if (!array[i].section)
+			printf("U ");
+		else if (!ft_strcmp(array[i].section, "__text"))
+			printf("T ");
+		printf("[%s]\n", array[i].name);
+		free(array[i].segment);
+		free(array[i].section);
+	}
 }
 
 void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
@@ -85,7 +144,7 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 			printf("ABSOLUTE\n"); // TODO semble etre le 'A'
 		}
 		else if (nlist.n_type & N_SECT)
-			get_section(ptr + sizeof(struct mach_header_64), nlist.n_sect, header->ncmds);
+			get_section_64(ptr + sizeof(struct mach_header_64), nlist.n_sect, header->ncmds, string_array);
 		//if (nlist.n_type & N_PBUD && nlist.n_sect == NO_SECT)
 		//	printf("PBUD\n");
 		//if (nlist.n_type & N_INDR)
