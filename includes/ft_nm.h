@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/26 15:10:37 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/03/28 13:54:01 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <mach-o/nlist.h>
 #include <mach-o/fat.h>
 #include <errno.h>
+#include <ar.h>
 #include "libft.h"
 
 typedef union	u_value
