@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/03 10:41:40 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/03 10:59:48 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,28 @@ void	print_data(t_data *array, int size)
 			else
 				printf("t ");
 		}
-		else if (!array[i].section)
+		else if (array[i].section && !ft_strcmp(array[i].section, "__bss"))
+		{
+			if (array[i].is_external)
+				printf("B ");
+			else
+				printf("b ");
+		}
+		else if (array[i].section && !ft_strcmp(array[i].section, "__data"))
+		{
+			if (array[i].is_external)
+				printf("D ");
+			else
+				printf("d ");
+		}
+		else if (array[i].section)
+		{
+			if (array[i].is_external)
+				printf("S ");
+			else
+				printf("s ");
+		}
+		else
 			printf("U ");
 		printf("%s\n", array[i].name);
 		free(array[i].segment);
