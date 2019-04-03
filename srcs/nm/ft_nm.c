@@ -6,11 +6,32 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/03 10:59:48 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/03 16:16:36 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nm.h"
+
+t_data		*sort_data(t_data *array, int size)
+{
+	int		i;
+	t_data	tmp;
+
+	i = 0;
+	while (i + 1 < size)
+	{
+		if (ft_strcmp(array[i].name, array[i + 1].name) > 0)
+		{
+			tmp = array[i];
+			array[i] = array[i + 1];
+			array[i + 1] = tmp;
+			i = 0;
+			continue ;
+		}
+		i++;
+	}
+	return (array);
+}
 
 uint32_t	swap_little_endian(uint32_t nb)
 {
@@ -109,7 +130,10 @@ void	print_data(t_data *array, int size)
 	int	i;
 	for (i = 0; i < size; i++)
 	{
-		printf("%016llx ", array[i].n_value.n_value64);
+		if (!array[i].section)
+			printf("                 ");
+		else
+			printf("%016llx ", array[i].n_value.n_value64);
 		if (array[i].is_pext && !array[i].section)
 			printf("- ");
 		else if (array[i].section && !ft_strcmp(array[i].section, "__text"))
@@ -177,11 +201,11 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 			string_array->is_pbud = 1;
 			//printf("PBUD\n");
 		}
-		if (nlist.n_type & N_INDR)
-		{
-			//TODO A comprendre
-			printf("INDR\n");
-		}
+		//if (nlist.n_type & N_INDR)
+		//{
+		//	//TODO A comprendre
+		//	//printf("INDR\n");
+		//}
 	}
 	if (nlist.n_type & N_EXT)
 	{
@@ -226,10 +250,7 @@ void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
 		//}
 	}
 	if (nlist.n_type & N_EXT)
-	{
 		string_array->is_external = 1;
-		//printf("EXTERNAL\n"); // SEMBLE ETRE 'U'
-	}
 }
 
 void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr)
@@ -257,6 +278,7 @@ void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr)
 		}
 		i++;
 	}
+	sort_data(string_array, nsyms);
 	print_data(string_array, nsyms);
 }
 
@@ -319,7 +341,7 @@ int		is_64_fat_file(const void *ptr)
 	return (0);
 }
 
-void	process_64_fat_file(const void *ptr)
+void	process_64_fat_file(const void *ptr, int size, char *filename)
 {
 	struct fat_header		*fat_header;
 	struct fat_arch_64		*fat_arch;
@@ -328,8 +350,9 @@ void	process_64_fat_file(const void *ptr)
 	uint32_t				i;
 
 	i = 0;
+	(void)size;
+	(void)filename;
 	fat_header = (struct fat_header*)ptr;
-	printf("ICI c'est OK\n");
 	while (i < fat_header->nfat_arch)
 	{
 		fat_arch = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
@@ -337,51 +360,35 @@ void	process_64_fat_file(const void *ptr)
 		magic_number = *(int*)new_ptr;
 		if (magic_number == MH_MAGIC || magic_number == MH_MAGIC_64 || magic_number == MH_CIGAM || magic_number == MH_CIGAM_64)
 		{
-			printf("ON ENTRE\n");
 			handle_64(new_ptr);
 			break;
 		}
 		i++;
 	}
 }
-int		search_host_arch(void *ptr)
+int		search_host_arch(void *ptr, int size, char *filename)
 {
 	struct fat_header		*fat_header;
 	struct fat_arch			*fat_arch;
 	void					*new_ptr;
-	unsigned int			magic_number;
 	uint32_t				i;
 
 	i = 0;
 	fat_header = ptr;
-	printf("On entre\n");
 	fat_arch = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
 	while (i < swap_little_endian(fat_header->nfat_arch))
 	{
-		printf("OFFSET = %d\n", swap_little_endian(fat_arch->offset));
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
-		magic_number = *(int*)new_ptr;
-		printf("MAGIC = %x\n", swap_little_endian(magic_number));
-		if (magic_number == MH_CIGAM_64 || magic_number == MH_MAGIC_64)
+		if (swap_little_endian(fat_arch->cputype) == CPU_TYPE_X86_64)
 		{
-			printf("On trouve une architecture mach-o\n");
-			handle_64(new_ptr);
+			ft_nm(new_ptr, size, filename);
 			return (1);
 		}
-		else if (magic_number == MH_CIGAM || magic_number == MH_MAGIC)
-		{
-			printf("On manipule du 32bits\n");
-			handle(new_ptr);
-		}
-		else
-			printf("Ok\n");
-		fat_arch = (void*)fat_arch + sizeof(struct fat_arch);
-		i++;
 	}
 	return (0);
 }
 
-void	process_fat_file(void *ptr)
+void	process_fat_file(void *ptr, int size, char *filename)
 {
 	struct fat_header		*fat_header;
 	struct fat_arch			*fat_arch;
@@ -391,32 +398,19 @@ void	process_fat_file(void *ptr)
 
 	i = 0;
 	fat_header = ptr;
-	printf("On entre\n");
 	fat_arch = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
 	while (i < swap_little_endian(fat_header->nfat_arch))
 	{
-		printf("OFFSET = %d\n", swap_little_endian(fat_arch->offset));
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		magic_number = *(int*)new_ptr;
-		printf("MAGIC = %x\n", swap_little_endian(magic_number));
-		if (magic_number == MH_CIGAM_64 || magic_number == MH_MAGIC_64)
-		{
-			printf("On trouve une architecture mach-o\n");
-			//handle_64(new_ptr);
-		}
-		else if (magic_number == MH_CIGAM || magic_number == MH_MAGIC)
-		{
-			printf("On manipule du 32bits\n");
-			//handle(new_ptr);
-		}
-		else
-			printf("Ok\n");
+		ft_nm(new_ptr, size, filename);
+		printf("OK LA\n");
 		fat_arch = (void*)fat_arch + sizeof(struct fat_arch);
 		i++;
 	}
 }
 
-void	handle_fat_file(const void *ptr)
+void	handle_fat_file(const void *ptr, int size, char *filename)
 {
 	struct fat_header		*fat_header;
 	struct fat_arch			*fat_arch;
@@ -425,61 +419,44 @@ void	handle_fat_file(const void *ptr)
 
 	fat_header = (struct fat_header*)ptr;
 	if (is_64_fat_file(ptr))
-	{
-		process_64_fat_file(ptr);
-	}
+		process_64_fat_file(ptr, size, filename);
 	else
 	{
-		printf("C'est une arch 64 bits\n");
-		process_fat_file((void*)ptr);
+		//if (!search_host_arch((void*)ptr, size, filename))
+			process_fat_file((void*)ptr, size, filename);
+		printf("On seg apres\n");
 	}
-	printf("Il y a %x arch\n", fat_header->nfat_arch);
-	printf("Il y a %x arch\n", swap_little_endian(fat_header->nfat_arch));
 	fat_arch = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
-	if (swap_little_endian(fat_arch->cputype) == CPU_TYPE_X86_64)
-		printf("x86_64\n");
-	printf("offset = [%d]\n", swap_little_endian(fat_arch->offset));
-	printf("size = [%d]\n", swap_little_endian(fat_arch->size));
 	magic_number = *(int*)((void*)fat_header + swap_little_endian(fat_arch->offset));
-	printf("magic_number = [%08x]\n", swap_little_endian(magic_number));
 	mach_header_64 = (struct mach_header_64 *)((char *)fat_header + swap_little_endian(fat_arch->offset));
-	printf("Magic = %08x\n", mach_header_64->magic);
 }
 
 void	handle_arch(void *ptr, int size, char *filename)
 {
 	struct ar_hdr	*ar;
-	struct ar_hdr	*next;
 	unsigned int	size_name;
-	int				i;
 
-	printf("size = %d\n", size);
 	(void)filename;
-	next = ptr + 8; // Watch out for corrupted files
-	i = 0;
+	ar = ptr + 8; // Watch out for corrupted files
+	size -= 8 + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
+	ar = (void*)ar + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
 	while (42)
 	{
 		size_name = 0;
-		ar = (void*)next;
-		if ((unsigned int)size < 8 + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size))
+		if ((unsigned int)size < sizeof(struct ar_hdr) + ft_atoi(ar->ar_size))
 			break;
 		printf("\n%s", filename);
-		//printf("ar_name = [%s]\n", ar->ar_name);
-		//next = (void*)next + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
 		size -= sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
-		if (!ft_strncmp(next->ar_name, "#1/", 3))
-			size_name = ft_atoi(next->ar_name + 3);
+		if (!ft_strncmp(ar->ar_name, "#1/", 3))
+			size_name = ft_atoi(ar->ar_name + 3);
 		if (size_name != 0)
-			printf("(%s):\n", next->ar_name + sizeof(struct ar_hdr));
+			printf("(%s):\n", ar->ar_name + sizeof(struct ar_hdr));
 		else
-			printf("(%s):\n", next->ar_name);
-		if (ft_strcmp(next->ar_name, ""))
-			ft_nm((void*)next + sizeof(struct ar_hdr) + size_name, ft_atoi(next->ar_size), filename);
-		//printf("MAGIC = %x\n", *(int*)((void*)next + sizeof(struct ar_hdr) + size_name));
-		next = (void*)next + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
-		i++;
+			printf("(%s):\n", ar->ar_name);
+		if (ft_strcmp(ar->ar_name, ""))
+			ft_nm((void*)ar + sizeof(struct ar_hdr) + size_name, ft_atoi(ar->ar_size), filename);
+		ar = (void*)ar + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
 	}
-	printf("i = %d\n", i);
 }
 
 void	ft_nm(char *ptr, int size, char *filename)
@@ -492,15 +469,9 @@ void	ft_nm(char *ptr, int size, char *filename)
 	else if (magic_number == MH_MAGIC)
 		handle(ptr);
 	else if (is_fat_file(ptr))
-	{
-		printf("C'est un fat\n");
-		handle_fat_file(ptr);
-	}
+		handle_fat_file(ptr, size, filename);
 	else if (!ft_memcmp(ptr, ARMAG, SARMAG))
-	{
-		printf("Nous avons ici une archive\n");
 		handle_arch(ptr, size, filename);
-	}	
 }
 
 int	try_open(char *filename)
@@ -550,7 +521,7 @@ int	main(int ac, char **av)
 	else if (ac == 2)
 	{
 		filename = ft_strdup(av[1]);
-		printf("file = %s\n", filename); //TODO
+		//printf("file = %s\n", filename); //TODO
 	}
 	else
 		return (0);
