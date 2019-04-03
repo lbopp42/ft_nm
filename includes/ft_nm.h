@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/28 13:54:01 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/03 10:26:55 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,5 +47,7 @@ typedef struct	s_data
 	int			is_pbud;
 	t_type		type;
 }				t_data;
+
+void	ft_nm(char *ptr, int size, char *filename);
 
 #endif

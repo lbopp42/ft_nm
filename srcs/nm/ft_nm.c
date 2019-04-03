@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/30 11:03:18 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/03 10:41:40 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,10 +113,15 @@ void	print_data(t_data *array, int size)
 		if (array[i].is_pext && !array[i].section)
 			printf("- ");
 		else if (array[i].section && !ft_strcmp(array[i].section, "__text"))
-			printf("T ");
+		{
+			if (array[i].is_external)
+				printf("T ");
+			else
+				printf("t ");
+		}
 		else if (!array[i].section)
 			printf("U ");
-		printf("[%s]\n", array[i].name);
+		printf("%s\n", array[i].name);
 		free(array[i].segment);
 		free(array[i].section);
 	}
@@ -214,7 +219,6 @@ void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr)
 
 	array = ptr + symoff;
 	i = 0;
-	printf("On creer un tableau de %d\n", nsyms);
 	string_array = (t_data*)malloc(nsyms * sizeof(t_data));
 	while (i < nsyms)
 	{
@@ -421,30 +425,43 @@ void	handle_fat_file(const void *ptr)
 	printf("Magic = %08x\n", mach_header_64->magic);
 }
 
-void	handle_arch(void *ptr, int size)
+void	handle_arch(void *ptr, int size, char *filename)
 {
 	struct ar_hdr	*ar;
 	struct ar_hdr	*next;
+	unsigned int	size_name;
+	int				i;
 
 	printf("size = %d\n", size);
-	next = ptr + 8;
+	(void)filename;
+	next = ptr + 8; // Watch out for corrupted files
+	i = 0;
 	while (42)
 	{
-		printf("=======================\n");
+		size_name = 0;
 		ar = (void*)next;
 		if ((unsigned int)size < 8 + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size))
 			break;
-		printf("ar_name = [%s]\n", ar->ar_name);
-		//printf("ar_size = [%s]\n", ar->ar_size);
-		//printf("sizeof ar_hdr = %lu\n", sizeof(struct ar_hdr));
-		next = (void*)next + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
+		printf("\n%s", filename);
+		//printf("ar_name = [%s]\n", ar->ar_name);
+		//next = (void*)next + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
 		size -= sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
-		printf("next name = [%s]\n", next->ar_name);
-		printf("MAGIC = %x\n", *(int*)((void*)next + sizeof(struct ar_hdr) + 20));
+		if (!ft_strncmp(next->ar_name, "#1/", 3))
+			size_name = ft_atoi(next->ar_name + 3);
+		if (size_name != 0)
+			printf("(%s):\n", next->ar_name + sizeof(struct ar_hdr));
+		else
+			printf("(%s):\n", next->ar_name);
+		if (ft_strcmp(next->ar_name, ""))
+			ft_nm((void*)next + sizeof(struct ar_hdr) + size_name, ft_atoi(next->ar_size), filename);
+		//printf("MAGIC = %x\n", *(int*)((void*)next + sizeof(struct ar_hdr) + size_name));
+		next = (void*)next + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
+		i++;
 	}
+	printf("i = %d\n", i);
 }
 
-void	ft_nm(char *ptr, int size)
+void	ft_nm(char *ptr, int size, char *filename)
 {
 	unsigned int			magic_number;
 
@@ -461,7 +478,7 @@ void	ft_nm(char *ptr, int size)
 	else if (!ft_memcmp(ptr, ARMAG, SARMAG))
 	{
 		printf("Nous avons ici une archive\n");
-		handle_arch(ptr, size);
+		handle_arch(ptr, size, filename);
 	}	
 }
 
@@ -525,7 +542,7 @@ int	main(int ac, char **av)
 		printf("MAP FAILED"); //TODO ft_nm <(cat /bin/ls) FAIL !
 		return(1);
 	}
-	ft_nm(ptr, buf.st_size);
+	ft_nm(ptr, buf.st_size, filename);
 	if ((munmap(ptr, buf.st_size)) == -1)
 	{
 		printf("ERREUR MUNMAP"); //TODO
