@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/03/28 15:10:24 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/03/30 11:03:18 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -421,21 +421,30 @@ void	handle_fat_file(const void *ptr)
 	printf("Magic = %08x\n", mach_header_64->magic);
 }
 
-void	handle_arch(void *ptr)
+void	handle_arch(void *ptr, int size)
 {
 	struct ar_hdr	*ar;
 	struct ar_hdr	*next;
 
-	ar = ptr + 8;
-	printf("ar_name = [%s]\n", ar->ar_name);
-	printf("ar_size = [%s]\n", ar->ar_size);
-	printf("sizeof ar_hdr = %lu\n", sizeof(struct ar_hdr));
-	next = ptr + 8 + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
-	printf("next name = [%s]\n", next->ar_name);
-	printf("MAGIC = %x\n", *(int*)((void*)next + sizeof(struct ar_hdr) + 20));
+	printf("size = %d\n", size);
+	next = ptr + 8;
+	while (42)
+	{
+		printf("=======================\n");
+		ar = (void*)next;
+		if ((unsigned int)size < 8 + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size))
+			break;
+		printf("ar_name = [%s]\n", ar->ar_name);
+		//printf("ar_size = [%s]\n", ar->ar_size);
+		//printf("sizeof ar_hdr = %lu\n", sizeof(struct ar_hdr));
+		next = (void*)next + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
+		size -= sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
+		printf("next name = [%s]\n", next->ar_name);
+		printf("MAGIC = %x\n", *(int*)((void*)next + sizeof(struct ar_hdr) + 20));
+	}
 }
 
-void	ft_nm(char *ptr)
+void	ft_nm(char *ptr, int size)
 {
 	unsigned int			magic_number;
 
@@ -452,7 +461,7 @@ void	ft_nm(char *ptr)
 	else if (!ft_memcmp(ptr, ARMAG, SARMAG))
 	{
 		printf("Nous avons ici une archive\n");
-		handle_arch(ptr);
+		handle_arch(ptr, size);
 	}	
 }
 
@@ -516,7 +525,7 @@ int	main(int ac, char **av)
 		printf("MAP FAILED"); //TODO ft_nm <(cat /bin/ls) FAIL !
 		return(1);
 	}
-	ft_nm(ptr);
+	ft_nm(ptr, buf.st_size);
 	if ((munmap(ptr, buf.st_size)) == -1)
 	{
 		printf("ERREUR MUNMAP"); //TODO
