@@ -9,3 +9,7 @@ Organisation des donnees:
 - la string table = ptr + stroff (qui se trouve dans symtab_command)
 - Le nom du symbole est trouvable en additionnant stringtable + l'index n_strx dans n_un de nlist.
 - La value des symboles est stockee dans n_value dans nlist
+
+
+ATTENTION:
+- /usr/bin/ccmake -> enorme fichier tres long

@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/05 11:20:47 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/09 14:34:08 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,13 +130,18 @@ void	print_data(t_data *array, int size)
 	int	i;
 	for (i = 0; i < size; i++)
 	{
+		if (array[i].is_pext && !array[i].section)
+		{
+			if (array[i].segment)
+				free(array[i].segment);
+			continue;
+			printf("- ");
+		}
 		if (!array[i].section)
 			printf("                 ");
 		else
 			printf("%016llx ", array[i].n_value.n_value64);
-		if (array[i].is_pext && !array[i].section)
-			printf("- ");
-		else if (array[i].section && !ft_strcmp(array[i].section, "__text"))
+		if (array[i].section && !ft_strcmp(array[i].section, "__text"))
 		{
 			if (array[i].is_external)
 				printf("T ");
@@ -167,8 +172,10 @@ void	print_data(t_data *array, int size)
 		else
 			printf("U ");
 		printf("%s\n", array[i].name);
-		free(array[i].segment);
-		free(array[i].section);
+		if (array[i].segment)
+			free(array[i].segment);
+		if (array[i].section)
+			free(array[i].section);
 	}
 }
 
@@ -177,6 +184,7 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 	struct mach_header_64		*header;
 
 	header = (struct mach_header_64*)ptr;
+	string_array->is_external = 0;
 	if (nlist.n_type & N_PEXT)
 	{
 		string_array->is_pext = 1;
@@ -264,6 +272,8 @@ void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr)
 	string_array = (t_data*)malloc(nsyms * sizeof(t_data));
 	while (i < nsyms)
 	{
+		string_array[i].segment = NULL;
+		string_array[i].section = NULL;
 		if (*(unsigned int*)ptr == MH_CIGAM_64 || *(unsigned int*)ptr == MH_MAGIC_64)
 		{
 			string_array[i].n_value.n_value64 = ((struct nlist_64*)array)[i].n_value;
@@ -331,40 +341,44 @@ int		is_fat_file(const void *ptr)
 	return (0);
 }
 
-int		is_64_fat_file(const void *ptr)
-{
-	struct fat_header		*fat_header;
+//int		search_host_arch(void *ptr, char *filename)
+//{
+//	struct fat_header		*fat_header;
+//	t_fat_arch				fat_arch;
+//	void					*new_ptr;
+//	uint32_t				i;
+//
+//	i = -1;
+//	fat_header = ptr;
+//	if (fat_header->magic == FAT_CIGAM_64)
+//		fat_arch.is_64 = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
+//	else
+//		fat_arch.is_32 = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
+//	while (++i < swap_little_endian(fat_header->nfat_arch))
+//	{
+//		if (fat_header->magic == FAT_CIGAM_64 &&
+//				swap_little_endian(fat_arch.is_64->cputype) == CPU_TYPE_X86_64)
+//		{
+//			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_64->offset);
+//			ft_nm(new_ptr, swap_little_endian(fat_arch.is_64->size), filename);
+//			fat_arch.is_64 = (void*)fat_arch.is_64 + sizeof(struct fat_arch_64);
+//			return (1);
+//		}
+//		else if (swap_little_endian(fat_arch.is_32->cputype) == CPU_TYPE_X86_64)
+//		{
+//			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_32->offset);
+//			ft_nm(new_ptr, swap_little_endian(fat_arch.is_32->size), filename);
+//			fat_arch.is_32 = (void*)fat_arch.is_32 + sizeof(struct fat_arch);
+//			return (1);
+//		}
+//		if (fat_header->magic == FAT_CIGAM_64)
+//			fat_arch.is_64 = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
+//		else
+//			fat_arch.is_32 = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
+//	}
+//	return (0);
+//}
 
-	fat_header = (struct fat_header*)ptr;
-	if (fat_header->magic == FAT_CIGAM_64)
-		return (1);
-	return (0);
-}
-
-void	process_64_fat_file(const void *ptr, char *filename)
-{
-	struct fat_header		*fat_header;
-	struct fat_arch_64		*fat_arch;
-	void					*new_ptr;
-	unsigned int			magic_number;
-	uint32_t				i;
-
-	i = 0;
-	(void)filename;
-	fat_header = (struct fat_header*)ptr;
-	while (i < fat_header->nfat_arch)
-	{
-		fat_arch = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
-		new_ptr = (void*)ptr + sizeof(struct fat_header) + swap_little_endian(fat_arch->offset);
-		magic_number = *(int*)new_ptr;
-		if (magic_number == MH_MAGIC || magic_number == MH_MAGIC_64 || magic_number == MH_CIGAM || magic_number == MH_CIGAM_64)
-		{
-			handle_64(new_ptr);
-			break;
-		}
-		i++;
-	}
-}
 int		search_host_arch(void *ptr, char *filename)
 {
 	struct fat_header		*fat_header;
@@ -372,10 +386,10 @@ int		search_host_arch(void *ptr, char *filename)
 	void					*new_ptr;
 	uint32_t				i;
 
-	i = 0;
+	i = -1;
 	fat_header = ptr;
 	fat_arch = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
-	while (i < swap_little_endian(fat_header->nfat_arch))
+	while (++i < swap_little_endian(fat_header->nfat_arch))
 	{
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		if (swap_little_endian(fat_arch->cputype) == CPU_TYPE_X86_64)
@@ -383,6 +397,30 @@ int		search_host_arch(void *ptr, char *filename)
 			ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename);
 			return (1);
 		}
+		fat_arch = (void*)fat_arch + sizeof(struct fat_arch);
+	}
+	return (0);
+}
+
+int		search_host_arch_64(void *ptr, char *filename)
+{
+	struct fat_header		*fat_header;
+	struct fat_arch_64		*fat_arch;
+	void					*new_ptr;
+	uint32_t				i;
+
+	i = -1;
+	fat_header = ptr;
+	fat_arch = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
+	while (++i < swap_little_endian(fat_header->nfat_arch))
+	{
+		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
+		if (swap_little_endian(fat_arch->cputype) == CPU_TYPE_X86_64)
+		{
+			ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename);
+			return (1);
+		}
+		fat_arch = (void*)fat_arch + sizeof(struct fat_arch_64);
 	}
 	return (0);
 }
@@ -390,42 +428,42 @@ int		search_host_arch(void *ptr, char *filename)
 void	process_fat_file(void *ptr, char *filename)
 {
 	struct fat_header		*fat_header;
-	struct fat_arch			*fat_arch;
+	t_fat_arch				fat_arch;
 	void					*new_ptr;
-	unsigned int			magic_number;
 	uint32_t				i;
 
-	i = 0;
+	i = -1;
 	fat_header = ptr;
-	fat_arch = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
-	while (i < swap_little_endian(fat_header->nfat_arch))
-	{
-		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
-		magic_number = *(int*)new_ptr;
-		ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename);
-		fat_arch = (void*)fat_arch + sizeof(struct fat_arch);
-		i++;
-	}
+	if (fat_header->magic == FAT_CIGAM_64)
+		fat_arch.is_64 = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
+	else
+		fat_arch.is_32 = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
+	while (++i < swap_little_endian(fat_header->nfat_arch))
+		if (fat_header->magic == FAT_CIGAM_64)
+		{
+			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_64->offset);
+			ft_nm(new_ptr, swap_little_endian(fat_arch.is_64->size), filename);
+			fat_arch.is_64 = (void*)fat_arch.is_64 + sizeof(struct fat_arch_64);
+		}
+		else
+		{
+			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_32->offset);
+			ft_nm(new_ptr, swap_little_endian(fat_arch.is_32->size), filename);
+			fat_arch.is_32 = (void*)fat_arch.is_32 + sizeof(struct fat_arch);
+		}
 }
 
 void	handle_fat_file(const void *ptr, char *filename)
 {
 	struct fat_header		*fat_header;
-	struct fat_arch			*fat_arch;
-	unsigned int			magic_number;
-	struct mach_header_64	*mach_header_64;
 
 	fat_header = (struct fat_header*)ptr;
-	if (is_64_fat_file(ptr))
-		process_64_fat_file(ptr, filename);
-	else
-	{
-		if (!search_host_arch((void*)ptr, filename))
-			process_fat_file((void*)ptr, filename);
-	}
-	fat_arch = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
-	magic_number = *(int*)((void*)fat_header + swap_little_endian(fat_arch->offset));
-	mach_header_64 = (struct mach_header_64 *)((char *)fat_header + swap_little_endian(fat_arch->offset));
+	if (fat_header->magic == FAT_CIGAM_64 &&
+			!search_host_arch_64((void*)ptr, filename))
+		process_fat_file((void*)ptr, filename);
+	else if (fat_header->magic == FAT_CIGAM &&
+			!search_host_arch((void*)ptr, filename))
+		process_fat_file((void*)ptr, filename);
 }
 
 void	handle_arch(void *ptr, int size, char *filename)

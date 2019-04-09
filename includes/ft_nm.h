@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/03 10:26:55 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/05 13:29:04 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,12 @@ typedef union	u_type
 	int			is_absolute;
 	int			is_undef;
 }				t_type;
+
+typedef union	u_fat_arch
+{
+	struct fat_arch_64	*is_64;
+	struct fat_arch	*is_32;
+}				t_fat_arch;
 
 typedef struct	s_data
 {
