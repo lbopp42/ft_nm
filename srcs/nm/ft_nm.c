@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/09 14:34:08 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/09 14:44:50 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,13 +130,13 @@ void	print_data(t_data *array, int size)
 	int	i;
 	for (i = 0; i < size; i++)
 	{
-		if (array[i].is_pext && !array[i].section)
-		{
-			if (array[i].segment)
-				free(array[i].segment);
-			continue;
-			printf("- ");
-		}
+		//if (array[i].is_pext && !array[i].section)
+		//{
+		//	if (array[i].segment)
+		//		free(array[i].segment);
+		//	continue;
+		//	printf("- ");
+		//}
 		if (!array[i].section)
 			printf("                 ");
 		else
@@ -227,6 +227,7 @@ void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
 	struct mach_header		*header;
 
 	header = (struct mach_header*)ptr;
+	string_array->is_external = 0;
 	if (nlist.n_type & N_PEXT)
 	{
 		string_array->is_pext = 1;
