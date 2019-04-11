@@ -6,32 +6,32 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/09 14:44:50 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/11 17:06:35 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nm.h"
 
-t_data		*sort_data(t_data *array, int size)
-{
-	int		i;
-	t_data	tmp;
-
-	i = 0;
-	while (i + 1 < size)
-	{
-		if (ft_strcmp(array[i].name, array[i + 1].name) > 0)
-		{
-			tmp = array[i];
-			array[i] = array[i + 1];
-			array[i + 1] = tmp;
-			i = 0;
-			continue ;
-		}
-		i++;
-	}
-	return (array);
-}
+//t_data		*sort_data(t_data *array, int size)
+//{
+//	int		i;
+//	t_data	tmp;
+//
+//	i = 0;
+//	while (i + 1 < size)
+//	{
+//		if (ft_strcmp(array[i].name, array[i + 1].name) > 0)
+//		{
+//			tmp = array[i];
+//			array[i] = array[i + 1];
+//			array[i + 1] = tmp;
+//			i = 0;
+//			continue ;
+//		}
+//		i++;
+//	}
+//	return (array);
+//}
 
 uint32_t	swap_little_endian(uint32_t nb)
 {
@@ -77,17 +77,20 @@ void	get_section_64(void *ptr, struct load_command *lc, int n_sect, t_data *data
 	struct segment_command_64	*seg_cmd;
 	struct section_64			section;
 	int							ncmds;
+	int							total_nsects;
 
 	ncmds = get_ncmds(ptr);
 	i = 0;
+	total_nsects = 0;
 	while (i < ncmds)
 	{
 		if (lc->cmd == LC_SEGMENT_64)
 		{
 			seg_cmd = (struct segment_command_64*)lc;
-			if (n_sect && seg_cmd->nsects / n_sect)
+			total_nsects += seg_cmd->nsects;
+			if (n_sect && total_nsects / n_sect)
 			{
-			    section = ((struct section_64*)(seg_cmd + 1))[n_sect - 1];
+			    section = ((struct section_64*)(seg_cmd + 1))[n_sect - (total_nsects - seg_cmd->nsects) - 1];
 				data->section = ft_strdup(section.sectname);
 				data->segment = ft_strdup(seg_cmd->segname);
 				return ;
@@ -104,17 +107,20 @@ void	get_section(void* ptr, struct load_command *lc, int n_sect, t_data *data)
 	struct segment_command	*seg_cmd;
 	struct section			section;
 	int						ncmds;
+	int						total_nsects;
 
 	ncmds = get_ncmds(ptr);
 	i = 0;
+	total_nsects = 0;
 	while (i < ncmds)
 	{
 		if (lc->cmd == LC_SEGMENT)
 		{
 			seg_cmd = (struct segment_command*)lc;
-			if (n_sect && seg_cmd->nsects / n_sect)
+			total_nsects += seg_cmd->nsects;
+			if (n_sect && total_nsects / n_sect)
 			{
-			    section = ((struct section*)(seg_cmd + 1))[n_sect - 1];
+			    section = ((struct section*)(seg_cmd + 1))[n_sect - (total_nsects - seg_cmd->nsects) - 1];
 				data->section = ft_strdup(section.sectname);
 				data->segment = ft_strdup(seg_cmd->segname);
 				return ;
@@ -289,7 +295,7 @@ void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr)
 		}
 		i++;
 	}
-	sort_data(string_array, nsyms);
+	qs_data(string_array, 0, nsyms - 1);
 	print_data(string_array, nsyms);
 }
 
