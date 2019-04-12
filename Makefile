@@ -6,12 +6,12 @@
 #    By: lbopp <marvin@42.fr>                       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/12 10:03:24 by lbopp             #+#    #+#              #
-#    Updated: 2019/04/11 14:25:46 by lbopp            ###   ########.fr        #
+#    Updated: 2019/04/11 17:25:05 by lbopp            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ft_nm
-CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Werror -Wextra -g
 LIBFT = libft/
 CC = clang
 SRC_NAME = nm/ft_nm.c\

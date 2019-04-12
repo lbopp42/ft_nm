@@ -6,7 +6,7 @@
 #    By: lbopp <marvin@42.fr>                       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/11/04 15:29:49 by lbopp             #+#    #+#              #
-#    Updated: 2019/01/09 17:38:57 by lbopp            ###   ########.fr        #
+#    Updated: 2019/04/11 17:38:57 by lbopp            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -99,7 +99,7 @@ SRC = ft_memset.c\
 	  ft_print_list_cir.c
 
 OBJ = $(SRC:.c=.o)
-CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Werror -Wextra -g
 CC = gcc
 
 all: $(NAME)

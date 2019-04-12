@@ -6,32 +6,11 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/11 17:06:35 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/12 10:29:36 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_nm.h"
-
-//t_data		*sort_data(t_data *array, int size)
-//{
-//	int		i;
-//	t_data	tmp;
-//
-//	i = 0;
-//	while (i + 1 < size)
-//	{
-//		if (ft_strcmp(array[i].name, array[i + 1].name) > 0)
-//		{
-//			tmp = array[i];
-//			array[i] = array[i + 1];
-//			array[i + 1] = tmp;
-//			i = 0;
-//			continue ;
-//		}
-//		i++;
-//	}
-//	return (array);
-//}
 
 uint32_t	swap_little_endian(uint32_t nb)
 {
@@ -136,13 +115,12 @@ void	print_data(t_data *array, int size)
 	int	i;
 	for (i = 0; i < size; i++)
 	{
-		//if (array[i].is_pext && !array[i].section)
-		//{
-		//	if (array[i].segment)
-		//		free(array[i].segment);
-		//	continue;
-		//	printf("- ");
-		//}
+		if (array[i].is_stab)
+		{
+			if (array[i].segment)
+				free(array[i].segment);
+			continue;
+		}
 		if (!array[i].section)
 			printf("                 ");
 		else
@@ -191,6 +169,10 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 
 	header = (struct mach_header_64*)ptr;
 	string_array->is_external = 0;
+	if (nlist.n_type & N_STAB)
+	{
+		string_array->is_stab = 1;
+	}
 	if (nlist.n_type & N_PEXT)
 	{
 		string_array->is_pext = 1;
@@ -234,6 +216,10 @@ void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
 
 	header = (struct mach_header*)ptr;
 	string_array->is_external = 0;
+	if (nlist.n_type & N_STAB)
+	{
+		string_array->is_stab = 1;
+	}
 	if (nlist.n_type & N_PEXT)
 	{
 		string_array->is_pext = 1;
@@ -514,16 +500,31 @@ void	ft_nm(char *ptr, int size, char *filename)
 		handle_arch(ptr, size, filename);
 }
 
-int	try_open(char *filename)
+int	*try_open(char **filenames, int nb_file)
 {
-	int fd;
+	int *fd;
+	int	i;
 
-	if ((fd = open(filename, O_RDONLY)) < 0)
+	if (!(fd = malloc(sizeof(int) * nb_file)))
+		return (NULL);
+	i = 0;
+	while (filenames[i])
 	{
-		if (errno == 13)
-			ft_putendl_fd("ft_nm: Permission Denied.", 2);
-		else
-			ft_putendl_fd("ft_nm: No such file or directory.", 2);
+		if ((fd[i] = open(filenames[i], O_RDONLY)) < 0)
+		{
+			if (errno == 13)
+				ft_putendl_fd("ft_nm: Permission Denied.", 2);
+			else
+				ft_putendl_fd("ft_nm: No such file or directory.", 2);
+			while (i >= 0)
+			{
+				close(fd[i]);
+				i--;
+			}
+			free(fd);
+			return (NULL);
+		}
+		i++;
 	}
 	return (fd);
 }
@@ -545,39 +546,52 @@ int	get_stat_file(char *filename, int fd, struct stat *buf)
 	return (0);
 }
 
+int	close_fd_error(int **fd, int nb_file, int return_nb)
+{
+	while (nb_file - 1 >= 0)
+	{
+		close((*fd)[nb_file - 1]);
+		nb_file--;
+	}
+	free(*fd);
+	return (return_nb);
+}
+
 int	main(int ac, char **av)
 {
-	char		*filename;
-	int		fd;
+	int			*fd;
 	struct stat	buf;
 	char		*ptr;
+	int			i;
+	const char	filename[6] = "a.out";
 
-	(void)av;
-	if (ac < 2)
-	{
-		filename = ft_strdup("a.out");
-		printf("file = %s\n", filename); // TODO
-	}
-	else if (ac == 2)
-	{
-		filename = ft_strdup(av[1]);
-		//printf("file = %s\n", filename); //TODO
-	}
-	else
-		return (0);
-	if ((fd = try_open(filename)) < 0)
+	if (av[1] && !(fd = try_open(&av[1], ac - 1)))
 		return (1);
-	if (get_stat_file(filename, fd, &buf) == 1)
+	else if (!(fd = try_open(&filename, 1))) //TODO Move in memory will be better
 		return (1);
-	if ((ptr = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
+	i = 0;
+	while (i < ac - 1)
 	{
-		printf("MAP FAILED"); //TODO ft_nm <(cat /bin/ls) FAIL !
-		return(1);
+		if (av[1] && get_stat_file(av[i + 1], fd[i], &buf) == 1)
+			return (close_fd_error(&fd, ac - 1, 1));
+		else if (!av[1] && get_stat_file("a.out", fd[i], &buf) == 1)
+			return (close_fd_error(&fd, 1, 1));
+		if ((ptr = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd[i], 0)) == MAP_FAILED)
+		{
+			printf("MAP FAILED"); //TODO ft_nm <(cat /bin/ls) FAIL !
+			return (close_fd_error(&fd, ac - 1, 1));
+		}
+		if (!av[1])
+			ft_nm(ptr, buf.st_size, "a.out");
+		else
+			ft_nm(ptr, buf.st_size, av[i]);
+		if ((munmap(ptr, buf.st_size)) == -1)
+		{
+			printf("ERREUR MUNMAP"); //TODO
+			return (close_fd_error(&fd, ac - 1, 1));
+		}
+		printf("\n");
+		i++;
 	}
-	ft_nm(ptr, buf.st_size, filename);
-	if ((munmap(ptr, buf.st_size)) == -1)
-	{
-		printf("ERREUR MUNMAP"); //TODO
-		return(1);
-	}
+	return (close_fd_error(&fd, ac - 1, 0));
 }

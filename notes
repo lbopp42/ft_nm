@@ -10,6 +10,9 @@ Organisation des donnees:
 - Le nom du symbole est trouvable en additionnant stringtable + l'index n_strx dans n_un de nlist.
 - La value des symboles est stockee dans n_value dans nlist
 
+Multi fichiers:
+- binaire + achive = retour a la ligne, chemin qu'on envoie, affichage binaire normal, affichage archive normal
+
 
 ATTENTION:
 - /usr/bin/ccmake -> enorme fichier tres long

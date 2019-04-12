@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/11 14:19:44 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/12 09:29:51 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ typedef struct	s_data
 	int			is_external;
 	int			is_pext;
 	int			is_pbud;
+	int			is_stab;
 	t_type		type;
 }				t_data;
 
