@@ -4,48 +4,51 @@ ft_nm:
                  U ___stack_chk_fail
                  U ___stack_chk_guard
 0000000100000000 T __mh_execute_header
-0000000100001990 T _browse_load_commands
-0000000100001770 T _browse_symtab
-0000000100001600 T _fill_data
-00000001000014a0 T _fill_data_64
+0000000100001660 T _browse_load_commands
+0000000100001440 T _browse_symtab
+                 U _close
+0000000100002010 T _close_fd_error
+00000001000012d0 T _fill_data
+0000000100001170 T _fill_data_64
                  U _free
                  U _fstat$INODE64
-00000001000029d0 T _ft_atoi
-00000001000026b0 T _ft_memcmp
-0000000100002ce0 t _ft_negative
-0000000100001bd0 T _ft_nm
-0000000100002c20 t _ft_positive
-0000000100002dc0 T _ft_putendl_fd
-0000000100002d70 T _ft_putstr_fd
-0000000100002850 T _ft_strcmp
-00000001000027a0 T _ft_strdup
-0000000100002760 T _ft_strlen
-0000000100002900 T _ft_strncmp
-0000000100000d80 T _get_ncmds
-0000000100000fc0 T _get_section
-0000000100000e50 T _get_section_64
-0000000100002180 T _get_stat_file
-0000000100001a20 T _handle
-0000000100001a50 T _handle_64
-0000000100001f60 T _handle_arch
-0000000100001ed0 T _handle_fat_file
-0000000100001a80 T _is_fat_file
-0000000100002230 T _main
+00000001000029c0 T _ft_atoi
+00000001000026a0 T _ft_memcmp
+0000000100002cd0 t _ft_negative
+00000001000018a0 T _ft_nm
+0000000100003078 b _ft_nm.i
+0000000100002c10 t _ft_positive
+0000000100002db0 T _ft_putendl_fd
+0000000100002d60 T _ft_putstr_fd
+0000000100002840 T _ft_strcmp
+0000000100002790 T _ft_strdup
+0000000100002750 T _ft_strlen
+00000001000028f0 T _ft_strncmp
+0000000100000a50 T _get_ncmds
+0000000100000c90 T _get_section
+0000000100000b20 T _get_section_64
+0000000100001f60 T _get_stat_file
+00000001000016f0 T _handle
+0000000100001720 T _handle_64
+0000000100001c90 T _handle_arch
+0000000100001bf0 T _handle_fat_file
+0000000100001750 T _is_fat_file
+0000000100002080 T _main
                  U _malloc
                  U _memcpy
                  U _mmap
                  U _munmap
                  U _open
-0000000100002430 T _partitionnement
-0000000100001120 T _print_data
-00000001000023c0 T _print_tab
+0000000100002420 T _partitionnement
+0000000100000df0 T _print_data
+00000001000023b0 T _print_tab
                  U _printf
-0000000100001d80 T _process_fat_file
-0000000100002640 T _qs_data
-0000000100001af0 T _search_host_arch
-0000000100001c90 T _search_host_arch_64
-0000000100000d40 T _swap_little_endian
-0000000100002110 T _try_open
+0000000100001aa0 T _process_fat_file
+0000000100002630 T _qs_data
+00000001000017c0 T _search_host_arch
+00000001000019b0 T _search_host_arch_64
+0000000100000a10 T _swap_little_endian
+0000000100001e40 T _try_open
                  U _write
                  U dyld_stub_binder
 

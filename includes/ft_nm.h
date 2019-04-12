@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/12 09:29:51 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/12 11:21:18 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ typedef struct	s_data
 	t_type		type;
 }				t_data;
 
-void	ft_nm(char *ptr, int size, char *filename);
+void	ft_nm(char *ptr, int size, char *filename, int nb_file);
 
 t_data	*qs_data(t_data *data, int premier, int dernier);
 

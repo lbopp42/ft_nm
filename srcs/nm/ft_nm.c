@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/12 10:29:36 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/12 14:29:33 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -334,45 +334,7 @@ int		is_fat_file(const void *ptr)
 	return (0);
 }
 
-//int		search_host_arch(void *ptr, char *filename)
-//{
-//	struct fat_header		*fat_header;
-//	t_fat_arch				fat_arch;
-//	void					*new_ptr;
-//	uint32_t				i;
-//
-//	i = -1;
-//	fat_header = ptr;
-//	if (fat_header->magic == FAT_CIGAM_64)
-//		fat_arch.is_64 = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
-//	else
-//		fat_arch.is_32 = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
-//	while (++i < swap_little_endian(fat_header->nfat_arch))
-//	{
-//		if (fat_header->magic == FAT_CIGAM_64 &&
-//				swap_little_endian(fat_arch.is_64->cputype) == CPU_TYPE_X86_64)
-//		{
-//			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_64->offset);
-//			ft_nm(new_ptr, swap_little_endian(fat_arch.is_64->size), filename);
-//			fat_arch.is_64 = (void*)fat_arch.is_64 + sizeof(struct fat_arch_64);
-//			return (1);
-//		}
-//		else if (swap_little_endian(fat_arch.is_32->cputype) == CPU_TYPE_X86_64)
-//		{
-//			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_32->offset);
-//			ft_nm(new_ptr, swap_little_endian(fat_arch.is_32->size), filename);
-//			fat_arch.is_32 = (void*)fat_arch.is_32 + sizeof(struct fat_arch);
-//			return (1);
-//		}
-//		if (fat_header->magic == FAT_CIGAM_64)
-//			fat_arch.is_64 = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
-//		else
-//			fat_arch.is_32 = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
-//	}
-//	return (0);
-//}
-
-int		search_host_arch(void *ptr, char *filename)
+int		search_host_arch(void *ptr, char *filename, int nb_file)
 {
 	struct fat_header		*fat_header;
 	struct fat_arch			*fat_arch;
@@ -387,7 +349,7 @@ int		search_host_arch(void *ptr, char *filename)
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		if (swap_little_endian(fat_arch->cputype) == CPU_TYPE_X86_64)
 		{
-			ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename);
+			ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename, nb_file);
 			return (1);
 		}
 		fat_arch = (void*)fat_arch + sizeof(struct fat_arch);
@@ -395,7 +357,7 @@ int		search_host_arch(void *ptr, char *filename)
 	return (0);
 }
 
-int		search_host_arch_64(void *ptr, char *filename)
+int		search_host_arch_64(void *ptr, char *filename, int nb_file)
 {
 	struct fat_header		*fat_header;
 	struct fat_arch_64		*fat_arch;
@@ -410,7 +372,7 @@ int		search_host_arch_64(void *ptr, char *filename)
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		if (swap_little_endian(fat_arch->cputype) == CPU_TYPE_X86_64)
 		{
-			ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename);
+			ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename, nb_file);
 			return (1);
 		}
 		fat_arch = (void*)fat_arch + sizeof(struct fat_arch_64);
@@ -418,7 +380,7 @@ int		search_host_arch_64(void *ptr, char *filename)
 	return (0);
 }
 
-void	process_fat_file(void *ptr, char *filename)
+void	process_fat_file(void *ptr, char *filename, int nb_file)
 {
 	struct fat_header		*fat_header;
 	t_fat_arch				fat_arch;
@@ -435,28 +397,28 @@ void	process_fat_file(void *ptr, char *filename)
 		if (fat_header->magic == FAT_CIGAM_64)
 		{
 			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_64->offset);
-			ft_nm(new_ptr, swap_little_endian(fat_arch.is_64->size), filename);
+			ft_nm(new_ptr, swap_little_endian(fat_arch.is_64->size), filename, nb_file);
 			fat_arch.is_64 = (void*)fat_arch.is_64 + sizeof(struct fat_arch_64);
 		}
 		else
 		{
 			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_32->offset);
-			ft_nm(new_ptr, swap_little_endian(fat_arch.is_32->size), filename);
+			ft_nm(new_ptr, swap_little_endian(fat_arch.is_32->size), filename, nb_file);
 			fat_arch.is_32 = (void*)fat_arch.is_32 + sizeof(struct fat_arch);
 		}
 }
 
-void	handle_fat_file(const void *ptr, char *filename)
+void	handle_fat_file(const void *ptr, char *filename, int nb_file)
 {
 	struct fat_header		*fat_header;
 
 	fat_header = (struct fat_header*)ptr;
 	if (fat_header->magic == FAT_CIGAM_64 &&
-			!search_host_arch_64((void*)ptr, filename))
-		process_fat_file((void*)ptr, filename);
+			!search_host_arch_64((void*)ptr, filename, nb_file))
+		process_fat_file((void*)ptr, filename, nb_file);
 	else if (fat_header->magic == FAT_CIGAM &&
-			!search_host_arch((void*)ptr, filename))
-		process_fat_file((void*)ptr, filename);
+			!search_host_arch((void*)ptr, filename, nb_file))
+		process_fat_file((void*)ptr, filename, nb_file);
 }
 
 void	handle_arch(void *ptr, int size, char *filename)
@@ -480,27 +442,47 @@ void	handle_arch(void *ptr, int size, char *filename)
 		else
 			printf("(%s):\n", ar->ar_name);
 		if (ft_strcmp(ar->ar_name, ""))
-			ft_nm((void*)ar + sizeof(struct ar_hdr) + size_name, ft_atoi(ar->ar_size), filename);
+			ft_nm((void*)ar + sizeof(struct ar_hdr) + size_name, ft_atoi(ar->ar_size), filename, -1);
 		ar = (void*)ar + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
 	}
 }
 
-void	ft_nm(char *ptr, int size, char *filename)
+void	ft_nm(char *ptr, int size, char *filename, int nb_file)
 {
-	unsigned int			magic_number;
+	unsigned int	magic_number;
+	static int		i = 0;
 
 	magic_number = *(int *)ptr;
 	if (magic_number == MH_MAGIC_64)
+	{
+		if (nb_file > 1)
+		{	
+			//ft_putchar('\n');
+			//ft_putstr(filename);
+			//ft_putendl(":");
+			printf("\n%s:\n", filename);
+		}
 		handle_64(ptr);
+	}
 	else if (magic_number == MH_MAGIC)
+	{
+		if (nb_file > 1)
+		{
+			//ft_putchar('\n');
+			//ft_putstr(filename);
+			//ft_putendl(":");
+			printf("\n%s:\n", filename);
+		}
 		handle(ptr);
+	}
 	else if (is_fat_file(ptr))
-		handle_fat_file(ptr, filename);
+		handle_fat_file(ptr, filename, nb_file);
 	else if (!ft_memcmp(ptr, ARMAG, SARMAG))
 		handle_arch(ptr, size, filename);
+	i++;
 }
 
-int	*try_open(char **filenames, int nb_file)
+int	*try_open(char *filename, int nb_file)
 {
 	int *fd;
 	int	i;
@@ -508,9 +490,9 @@ int	*try_open(char **filenames, int nb_file)
 	if (!(fd = malloc(sizeof(int) * nb_file)))
 		return (NULL);
 	i = 0;
-	while (filenames[i])
+	while (i < nb_file)
 	{
-		if ((fd[i] = open(filenames[i], O_RDONLY)) < 0)
+		if ((fd[i] = open(filename, O_RDONLY)) < 0)
 		{
 			if (errno == 13)
 				ft_putendl_fd("ft_nm: Permission Denied.", 2);
@@ -524,6 +506,7 @@ int	*try_open(char **filenames, int nb_file)
 			free(fd);
 			return (NULL);
 		}
+		filename += ft_strlen(filename) + 1;
 		i++;
 	}
 	return (fd);
@@ -563,14 +546,13 @@ int	main(int ac, char **av)
 	struct stat	buf;
 	char		*ptr;
 	int			i;
-	const char	filename[6] = "a.out";
 
-	if (av[1] && !(fd = try_open(&av[1], ac - 1)))
-		return (1);
-	else if (!(fd = try_open(&filename, 1))) //TODO Move in memory will be better
+	if (!av[1] && !(fd = try_open("a.out", 1)))
+		return(1);
+	if (av[1] && !(fd = try_open(av[1], ac - 1)))
 		return (1);
 	i = 0;
-	while (i < ac - 1)
+	while (i < ac - 1 || (i == 0 && !av[1]))
 	{
 		if (av[1] && get_stat_file(av[i + 1], fd[i], &buf) == 1)
 			return (close_fd_error(&fd, ac - 1, 1));
@@ -582,15 +564,14 @@ int	main(int ac, char **av)
 			return (close_fd_error(&fd, ac - 1, 1));
 		}
 		if (!av[1])
-			ft_nm(ptr, buf.st_size, "a.out");
+			ft_nm(ptr, buf.st_size, "a.out", 1);
 		else
-			ft_nm(ptr, buf.st_size, av[i]);
+			ft_nm(ptr, buf.st_size, av[i + 1], ac - 1);
 		if ((munmap(ptr, buf.st_size)) == -1)
 		{
 			printf("ERREUR MUNMAP"); //TODO
 			return (close_fd_error(&fd, ac - 1, 1));
 		}
-		printf("\n");
 		i++;
 	}
 	return (close_fd_error(&fd, ac - 1, 0));
