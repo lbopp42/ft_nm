@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/12 14:29:33 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/24 14:27:27 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,7 @@ void	get_section(void* ptr, struct load_command *lc, int n_sect, t_data *data)
 	}
 }
 
-void	print_data(t_data *array, int size)
+void	print_data(void *ptr, t_data *array, int size)
 {
 	int	i;
 	for (i = 0; i < size; i++)
@@ -121,10 +121,14 @@ void	print_data(t_data *array, int size)
 				free(array[i].segment);
 			continue;
 		}
-		if (!array[i].section)
+		if (*(unsigned int*)ptr == MH_MAGIC_64 && !array[i].section && !array[i].is_ind)
 			printf("                 ");
-		else
+		else if (*(unsigned int*)ptr == MH_MAGIC && !array[i].section && !array[i].is_ind)
+			printf("         ");
+		else if (*(unsigned int*)ptr == MH_MAGIC_64)
 			printf("%016llx ", array[i].n_value.n_value64);
+		else
+			printf("%08llx ", array[i].n_value.n_value64);
 		if (array[i].section && !ft_strcmp(array[i].section, "__text"))
 		{
 			if (array[i].is_external)
@@ -153,6 +157,13 @@ void	print_data(t_data *array, int size)
 			else
 				printf("s ");
 		}
+		else if (array[i].is_ind)
+		{
+			if (array[i].is_external)
+				printf("I ");
+			else
+				printf("i ");
+		}
 		else
 			printf("U ");
 		printf("%s\n", array[i].name);
@@ -168,7 +179,11 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 	struct mach_header_64		*header;
 
 	header = (struct mach_header_64*)ptr;
+	string_array->is_ind = 0;
 	string_array->is_external = 0;
+	string_array->is_stab = 0;
+	string_array->is_pext = 0;
+	string_array->is_pbud = 0;
 	if (nlist.n_type & N_STAB)
 	{
 		string_array->is_stab = 1;
@@ -197,11 +212,10 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 			string_array->is_pbud = 1;
 			//printf("PBUD\n");
 		}
-		//if (nlist.n_type & N_INDR)
-		//{
-		//	//TODO A comprendre
-		//	//printf("INDR\n");
-		//}
+		if (nlist.n_type & N_INDR)
+		{
+			string_array->is_ind = 1;
+		}
 	}
 	if (nlist.n_type & N_EXT)
 	{
@@ -215,7 +229,11 @@ void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
 	struct mach_header		*header;
 
 	header = (struct mach_header*)ptr;
+	string_array->is_ind = 0;
 	string_array->is_external = 0;
+	string_array->is_stab = 0;
+	string_array->is_pext = 0;
+	string_array->is_pbud = 0;
 	if (nlist.n_type & N_STAB)
 	{
 		string_array->is_stab = 1;
@@ -244,11 +262,13 @@ void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
 			string_array->is_pbud = 1;
 			//printf("PBUD\n");
 		}
-		//if (nlist.n_type & N_INDR)
-		//{
-		//	//TODO A comprendre
-		//	printf("INDR\n");
-		//}
+		if (nlist.n_type & N_INDR)
+		{
+			if (nlist.n_type & N_INDR)
+			{
+				string_array->is_ind = 1;
+			}
+		}
 	}
 	if (nlist.n_type & N_EXT)
 		string_array->is_external = 1;
@@ -282,7 +302,7 @@ void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr)
 		i++;
 	}
 	qs_data(string_array, 0, nsyms - 1);
-	print_data(string_array, nsyms);
+	print_data(ptr, string_array, nsyms);
 }
 
 void	browse_load_commands(void* ptr, struct load_command *lc)

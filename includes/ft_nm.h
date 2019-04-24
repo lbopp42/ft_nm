@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/12 11:21:18 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/24 14:28:24 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ typedef struct	s_data
 	int			is_pext;
 	int			is_pbud;
 	int			is_stab;
+	int			is_ind;
 	t_type		type;
 }				t_data;
 
