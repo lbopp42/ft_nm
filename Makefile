@@ -6,12 +6,12 @@
 #    By: lbopp <marvin@42.fr>                       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/12 10:03:24 by lbopp             #+#    #+#              #
-#    Updated: 2019/04/11 17:25:05 by lbopp            ###   ########.fr        #
+#    Updated: 2019/04/24 15:36:21 by lbopp            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ft_nm
-CFLAGS = -Wall -Werror -Wextra -g
+CFLAGS = -Wall -Werror -Wextra -g -fsanitize=address
 LIBFT = libft/
 CC = clang
 SRC_NAME = nm/ft_nm.c\
@@ -34,6 +34,7 @@ $(NAME): $(OBJ)
 
 clean:
 	make -C libft clean
+	$(RM) $(OBJ)
 
 fclean: clean
 	make -C libft fclean

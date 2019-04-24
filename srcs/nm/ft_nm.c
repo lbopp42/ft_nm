@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/24 14:27:27 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/04/24 16:59:00 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,14 +121,14 @@ void	print_data(void *ptr, t_data *array, int size)
 				free(array[i].segment);
 			continue;
 		}
-		if (*(unsigned int*)ptr == MH_MAGIC_64 && !array[i].section && !array[i].is_ind)
+		if (*(unsigned int*)ptr == MH_MAGIC_64 && !array[i].section && !array[i].is_ind && !array[i].is_abs)
 			printf("                 ");
-		else if (*(unsigned int*)ptr == MH_MAGIC && !array[i].section && !array[i].is_ind)
+		else if (*(unsigned int*)ptr == MH_MAGIC && !array[i].section && !array[i].is_ind && !array[i].is_abs)
 			printf("         ");
 		else if (*(unsigned int*)ptr == MH_MAGIC_64)
 			printf("%016llx ", array[i].n_value.n_value64);
 		else
-			printf("%08llx ", array[i].n_value.n_value64);
+			printf("%08x ", array[i].n_value.n_value32);
 		if (array[i].section && !ft_strcmp(array[i].section, "__text"))
 		{
 			if (array[i].is_external)
@@ -157,6 +157,13 @@ void	print_data(void *ptr, t_data *array, int size)
 			else
 				printf("s ");
 		}
+		else if (array[i].is_abs)
+		{
+			if (array[i].is_external)
+				printf("A ");
+			else
+				printf("a ");
+		}
 		else if (array[i].is_ind)
 		{
 			if (array[i].is_external)
@@ -184,6 +191,8 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 	string_array->is_stab = 0;
 	string_array->is_pext = 0;
 	string_array->is_pbud = 0;
+	string_array->is_abs = 0;
+	string_array->is_undef = 0;
 	if (nlist.n_type & N_STAB)
 	{
 		string_array->is_stab = 1;
@@ -193,30 +202,16 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 		string_array->is_pext = 1;
 		//printf("PEXTERNAL\n"); // TODO Quand c'est active, mettre lettre en minuscule (non-external)
 	}
-	if (nlist.n_type & N_TYPE)
-	{
-		if (nlist.n_type & N_UNDF && nlist.n_sect == NO_SECT)
-		{
-			//printf("UNDEF\n");
-			string_array->type.is_undef = 1;
-		}
-		else if (nlist.n_type & N_ABS && nlist.n_sect == NO_SECT)
-		{
-			string_array->type.is_absolute = 1;
-			//printf("ABSOLUTE\n"); // TODO semble etre le 'A'
-		}
-		else if (nlist.n_type & N_SECT)
-			get_section_64(ptr, ptr + sizeof(struct mach_header_64), nlist.n_sect, string_array);
-		else if (nlist.n_type & N_PBUD && nlist.n_sect == NO_SECT)
-		{
-			string_array->is_pbud = 1;
-			//printf("PBUD\n");
-		}
-		if (nlist.n_type & N_INDR)
-		{
-			string_array->is_ind = 1;
-		}
-	}
+	if ((nlist.n_type & N_TYPE) == N_UNDF)
+		string_array->is_undef = 1;
+	else if ((nlist.n_type & N_TYPE) == N_ABS)
+		string_array->is_abs = 1;
+	else if ((nlist.n_type & N_TYPE) == N_SECT)
+		get_section_64(ptr, ptr + sizeof(struct mach_header_64), nlist.n_sect, string_array);
+	else if ((nlist.n_type & N_TYPE) == N_PBUD)
+		string_array->is_pbud = 1;
+	else if ((nlist.n_type & N_TYPE) == N_INDR)
+		string_array->is_ind = 1;
 	if (nlist.n_type & N_EXT)
 	{
 		string_array->is_external = 1;
@@ -234,6 +229,8 @@ void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
 	string_array->is_stab = 0;
 	string_array->is_pext = 0;
 	string_array->is_pbud = 0;
+	string_array->is_abs = 0;
+	string_array->is_undef = 0;
 	if (nlist.n_type & N_STAB)
 	{
 		string_array->is_stab = 1;
@@ -243,33 +240,16 @@ void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
 		string_array->is_pext = 1;
 		//printf("PEXTERNAL\n"); // TODO Quand c'est active, mettre lettre en minuscule (non-external)
 	}
-	if (nlist.n_type & N_TYPE)
-	{
-		if (nlist.n_type & N_UNDF && nlist.n_sect == NO_SECT)
-		{
-			//printf("UNDEF\n");
-			string_array->type.is_undef = 1;
-		}
-		else if (nlist.n_type & N_ABS && nlist.n_sect == NO_SECT)
-		{
-			string_array->type.is_absolute = 1;
-			//printf("ABSOLUTE\n"); // TODO semble etre le 'A'
-		}
-		else if (nlist.n_type & N_SECT)
-			get_section(ptr, ptr + sizeof(struct mach_header), nlist.n_sect, string_array);
-		else if (nlist.n_type & N_PBUD && nlist.n_sect == NO_SECT)
-		{
-			string_array->is_pbud = 1;
-			//printf("PBUD\n");
-		}
-		if (nlist.n_type & N_INDR)
-		{
-			if (nlist.n_type & N_INDR)
-			{
-				string_array->is_ind = 1;
-			}
-		}
-	}
+	if ((nlist.n_type & N_TYPE) == N_UNDF)
+		string_array->is_undef = 1;
+	else if ((nlist.n_type & N_TYPE) == N_ABS)
+		string_array->is_abs = 1;
+	else if ((nlist.n_type & N_TYPE) == N_SECT)
+		get_section(ptr, ptr + sizeof(struct mach_header), nlist.n_sect, string_array);
+	else if ((nlist.n_type & N_TYPE) == N_PBUD)
+		string_array->is_pbud = 1;
+	else if ((nlist.n_type & N_TYPE) == N_INDR)
+		string_array->is_ind = 1;
 	if (nlist.n_type & N_EXT)
 		string_array->is_external = 1;
 }
