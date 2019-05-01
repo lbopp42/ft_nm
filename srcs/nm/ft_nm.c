@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/26 16:51:29 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/01 14:57:06 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,49 +20,49 @@ uint32_t	swap_little_endian(uint32_t nb)
 	return (swapped);
 }
 
-int		get_ncmds(void *ptr)
+int            get_ncmds(void *ptr)
 {
-	void			*header;
-	unsigned int	magic_number;
+       void                    *header;
+       unsigned int    magic_number;
 
-	magic_number = *(int*)ptr;
-	if (magic_number == MH_MAGIC_64)
-	{
-		header = (struct mach_header_64*)ptr;
-		return (((struct mach_header_64*)header)->ncmds);
-	}
-	else if (magic_number == MH_MAGIC)
-	{
-		header = (struct mach_header*)ptr;
-		return (((struct mach_header*)header)->ncmds);
-	}
-	else if (magic_number == MH_CIGAM_64)
-	{
-		header = (struct mach_header_64*)ptr;
-		return (swap_little_endian(((struct mach_header_64*)header)->ncmds));
-	}
-	else if (magic_number == MH_CIGAM)
-	{
-		header = (struct mach_header*)ptr;
-		return (swap_little_endian(((struct mach_header*)header)->ncmds));
-	}
-	return (0);
+       magic_number = *(int*)ptr;
+       if (magic_number == MH_MAGIC_64)
+       {
+               header = (struct mach_header_64*)ptr;
+               return (((struct mach_header_64*)header)->ncmds);
+       }
+       else if (magic_number == MH_MAGIC)
+       {
+               header = (struct mach_header*)ptr;
+               return (((struct mach_header*)header)->ncmds);
+       }
+       else if (magic_number == MH_CIGAM_64)
+       {
+               header = (struct mach_header_64*)ptr;
+               return (swap_little_endian(((struct mach_header_64*)header)->ncmds));
+       }
+       else if (magic_number == MH_CIGAM)
+       {
+               header = (struct mach_header*)ptr;
+               return (swap_little_endian(((struct mach_header*)header)->ncmds));
+       }
+       return (0);
 }
 
-int		get_lc_cmdsize(void *ptr, struct load_command *lc)
+uint32_t	get_32(void *ptr, uint32_t v)
 {
-	if (*(unsigned int*)ptr == MH_MAGIC_64 || *(unsigned int*)ptr == MH_MAGIC)
-		return (lc->cmdsize);
+	if (*(unsigned int*)ptr == MH_MAGIC || *(unsigned int*)ptr == MH_MAGIC_64)
+		return (v);
 	else
-		return (swap_little_endian(lc->cmdsize));
+		return (swap_little_endian(v));
 }
 
-int		get_lc_cmd(void *ptr, struct load_command *lc)
+uint64_t	get_64(void *ptr, uint64_t v)
 {
-	if (*(unsigned int*)ptr == MH_MAGIC_64 || *(unsigned int*)ptr == MH_MAGIC)
-		return (lc->cmd);
+	if (*(unsigned int*)ptr == MH_MAGIC_64)
+		return (v);
 	else
-		return (swap_little_endian(lc->cmd));
+		return (swap_little_endian(v));
 }
 
 void	get_section_64(void *ptr, struct load_command *lc, int n_sect, t_data *data)
@@ -78,19 +78,19 @@ void	get_section_64(void *ptr, struct load_command *lc, int n_sect, t_data *data
 	total_nsects = 0;
 	while (i < ncmds)
 	{
-		if (get_lc_cmd(ptr, lc) == LC_SEGMENT_64)
+		if (get_64(ptr, lc->cmd) == LC_SEGMENT_64)
 		{
 			seg_cmd = (struct segment_command_64*)lc;
-			total_nsects += seg_cmd->nsects;
+			total_nsects += get_64(ptr, seg_cmd->nsects);
 			if (n_sect && total_nsects / n_sect)
 			{
-			    section = ((struct section_64*)(seg_cmd + 1))[n_sect - (total_nsects - seg_cmd->nsects) - 1];
+			    section = ((struct section_64*)(seg_cmd + 1))[n_sect - (total_nsects - get_64(ptr, seg_cmd->nsects)) - 1];
 				data->section = ft_strdup(section.sectname);
 				data->segment = ft_strdup(seg_cmd->segname);
 				return ;
 			}
 		}
-		lc = (void*)lc + get_lc_cmdsize(ptr, lc);
+		lc = (void*)lc + get_64(ptr, lc->cmdsize);
 		i++;
 	}
 }
@@ -108,19 +108,19 @@ void	get_section(void* ptr, struct load_command *lc, int n_sect, t_data *data)
 	total_nsects = 0;
 	while (i < ncmds)
 	{
-		if (get_lc_cmd(ptr, lc) == LC_SEGMENT)
+		if (get_32(ptr, lc->cmd) == LC_SEGMENT)
 		{
 			seg_cmd = (struct segment_command*)lc;
-			total_nsects += seg_cmd->nsects;
+			total_nsects += get_32(ptr, seg_cmd->nsects);
 			if (n_sect && total_nsects / n_sect)
 			{
-			    section = ((struct section*)(seg_cmd + 1))[n_sect - (total_nsects - seg_cmd->nsects) - 1];
+			    section = ((struct section*)(seg_cmd + 1))[n_sect - (total_nsects - get_32(ptr, seg_cmd->nsects)) - 1];
 				data->section = ft_strdup(section.sectname);
 				data->segment = ft_strdup(seg_cmd->segname);
 				return ;
 			}
 		}
-		lc = (void*)lc + get_lc_cmdsize(ptr, lc);
+		lc = (void*)lc + get_32(ptr, lc->cmdsize);
 		i++;
 	}
 }
@@ -141,9 +141,9 @@ void	print_data(void *ptr, t_data *array, int size)
 		//	printf("                 ");
 		//else if (*(unsigned int*)ptr == MH_MAGIC && !array[i].section && !array[i].is_ind && !array[i].is_abs && !array[i].n_value.n_value32)
 		//	printf("         ");
-		if ((*(unsigned int*)ptr == MH_MAGIC_64 || *(unsigned int*)ptr == MH_CIGAM_64) && array[i].is_undef)
+		if ((*(unsigned int*)ptr == MH_MAGIC_64 || *(unsigned int*)ptr == MH_CIGAM_64) && array[i].is_undef && !array[i].n_value.n_value64)
 			printf("                 ");
-		else if ((*(unsigned int*)ptr == MH_MAGIC || *(unsigned int*)ptr == MH_CIGAM) && array[i].is_undef)
+		else if ((*(unsigned int*)ptr == MH_MAGIC || *(unsigned int*)ptr == MH_CIGAM) && array[i].is_undef && !array[i].n_value.n_value32)
 			printf("         ");
 		else if (*(unsigned int*)ptr == MH_MAGIC_64 || *(unsigned int*)ptr == MH_CIGAM_64)
 			printf("%016llx ", array[i].n_value.n_value64);
@@ -191,9 +191,12 @@ void	print_data(void *ptr, t_data *array, int size)
 			else
 				printf("i ");
 		}
-		else if (array[i].is_undef && array[i].is_external && array[i].n_value.n_value64 != 0)
+		else if (array[i].is_undef && array[i].n_value.n_value32 != 0)
 		{
-			printf("C ");
+			if (array[i].is_external)
+				printf("C ");
+			else
+				printf("c ");
 		}
 		else
 			printf("U ");
@@ -317,13 +320,13 @@ void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr)
 		string_array[i].section = NULL;
 		if (*(unsigned int*)ptr == MH_CIGAM_64 || *(unsigned int*)ptr == MH_MAGIC_64)
 		{
-			string_array[i].n_value.n_value64 = get_n_value(ptr, array, i);
+			string_array[i].n_value.n_value64 = get_64(ptr, ((struct nlist_64*)array)[i].n_value);
 			string_array[i].name = ft_strdup(ptr + stroff + get_n_strx(ptr, array, i));
 			fill_data_64(&(string_array[i]), ((struct nlist_64*)array)[i], ptr);
 		}
 		else
 		{
-			string_array[i].n_value.n_value32 = get_n_value(ptr, array, i);
+			string_array[i].n_value.n_value32 = get_32(ptr, ((struct nlist*)array)[i].n_value);
 			string_array[i].name = ft_strdup(ptr + stroff + get_n_strx(ptr, array, i));
 			fill_data(&(string_array[i]), ((struct nlist*)array)[i], ptr);
 		}
@@ -367,13 +370,13 @@ void	browse_load_commands(void *ptr, struct load_command *lc)
 	ncmds = get_ncmds(ptr);
 	while (i < ncmds)
 	{
-		if (get_lc_cmd(ptr, lc) == LC_SYMTAB)
+		if (get_32(ptr, lc->cmd) == LC_SYMTAB)
 		{
 			symtab = (struct symtab_command*)lc;
 			browse_symtab(get_symtab_symoff(ptr, symtab), get_symtab_nsyms(ptr, symtab), get_symtab_stroff(ptr, symtab), (void*)ptr);
 			break;
 		}
-		lc = (void*)lc + get_lc_cmdsize(ptr, lc);
+		lc = (void*)lc + get_32(ptr, lc->cmdsize);
 		i++;
 	}
 }
@@ -452,7 +455,7 @@ int		search_host_arch_64(void *ptr, char *filename, int nb_file)
 	return (0);
 }
 
-char	*get_cputype(void *ptr)
+char	*get_cputype(void *ptr, int i)
 {
 	t_fat_arch				fat_arch;
 	struct fat_header		*fat_header;
@@ -460,7 +463,7 @@ char	*get_cputype(void *ptr)
 	fat_header = ptr;
 	if (fat_header->magic == FAT_CIGAM_64)
 	{
-		fat_arch.is_64 = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
+		fat_arch.is_64 = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header)) + i;
 		if (swap_little_endian(fat_arch.is_64->cputype) == CPU_TYPE_POWERPC)
 			return ("ppc");
 		else if (swap_little_endian(fat_arch.is_64->cputype) == CPU_TYPE_X86)
@@ -470,7 +473,7 @@ char	*get_cputype(void *ptr)
 	}
 	else
 	{
-		fat_arch.is_32 = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
+		fat_arch.is_32 = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header)) + i;
 		if (swap_little_endian(fat_arch.is_32->cputype) == CPU_TYPE_POWERPC)
 			return ("ppc");
 		else if (swap_little_endian(fat_arch.is_32->cputype) == CPU_TYPE_X86)
@@ -495,7 +498,10 @@ void	process_fat_file(void *ptr, char *filename, int nb_file)
 		fat_arch.is_32 = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
 	while (++i < swap_little_endian(fat_header->nfat_arch))
 	{
-		printf("\n%s (for architecture %s):\n", filename, get_cputype(ptr));
+		if (swap_little_endian(fat_header->nfat_arch) > 1)
+			printf("\n%s (for architecture %s):\n", filename, get_cputype(ptr, i));
+		else
+			printf("%s:\n", filename);
 		if (fat_header->magic == FAT_CIGAM_64)
 		{
 			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_64->offset);
