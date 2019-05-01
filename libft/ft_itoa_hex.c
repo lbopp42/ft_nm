@@ -1,37 +1,33 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_itoa.c                                          :+:      :+:    :+:   */
+/*   ft_itoa_hex.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2016/11/11 08:35:54 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/01 15:31:11 by lbopp            ###   ########.fr       */
+/*   Created: 2019/05/01 16:19:35 by lbopp             #+#    #+#             */
+/*   Updated: 2019/05/01 17:05:50 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
+#include <stdio.h>
 
-static char	*ft_fill(unsigned int div, int size, int i, int n)
+static char	*ft_fill(uint64_t div, int size, int i, uint64_t n)
 {
-	unsigned int	nb;
-	char			*result;
+	uint64_t	nb;
+	char		*result;
+	const char	array[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
 	result = NULL;
 	nb = n;
-	if (n < 0 && n != 0)
-		nb = -n;
 	if (!(result = (char*)malloc(sizeof(char) * (size + 1))))
 		return (0);
-	if (n < 0 && n != 0)
-		result[0] = '-';
-	if (n <= 0)
-		size--;
 	while (size > 0)
 	{
-		result[i] = nb / div + '0';
+		result[i] = array[nb / div];
 		nb %= div;
-		div /= 10;
+		div /= 16;
 		size--;
 		i++;
 	}
@@ -39,28 +35,20 @@ static char	*ft_fill(unsigned int div, int size, int i, int n)
 	return (result);
 }
 
-char		*ft_itoa(int n)
+char		*ft_itoa_hex(uint64_t n)
 {
-	unsigned int	div;
+	uint64_t		div;
 	int				size;
-	unsigned int	nb;
+	uint64_t		nb;
 	int				i;
 
 	size = 1;
 	i = 0;
 	nb = n;
-	if (n < 0 && n != 0)
-	{
-		nb = -n;
-		size++;
-		i++;
-	}
-	if (n == 0)
-		size++;
 	div = 1;
-	while (nb / 10 >= div)
+	while (nb / 16 >= div)
 	{
-		div *= 10;
+		div *= 16;
 		size++;
 	}
 	return (ft_fill(div, size, i, n));

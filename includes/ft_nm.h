@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/04/24 15:40:08 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/01 18:02:08 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@
 #include <errno.h>
 #include <ar.h>
 #include "libft.h"
+#define ARCH_32 32
+#define ARCH_64 64
 
 typedef union	u_value
 {

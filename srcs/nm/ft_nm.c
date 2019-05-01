@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/01 14:57:06 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/01 18:55:03 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,6 +125,35 @@ void	get_section(void* ptr, struct load_command *lc, int n_sect, t_data *data)
 	}
 }
 
+void	print_addr(uint64_t	n_value, int arch)
+{
+	char	*addr;
+	size_t	len;
+	char	*s;
+
+	(void)arch;
+	addr = ft_itoa_hex(n_value);
+	len = ft_strlen(addr);
+	if (arch == ARCH_32 && (s = malloc(sizeof(char) * (8 - len))))
+	{
+		ft_memset(s, '0', 8 - len);
+		write(1, s, 8 - len);
+	}
+	else if (arch == ARCH_64 && (s = malloc(sizeof(char) * (16 - len))))
+	{
+		ft_memset(s, '0', 16 - len);
+		write(1, s, 16 - len);
+	}
+	else
+	{
+		free(addr);
+		return;
+	}
+	free(s);
+	ft_putstr(addr);
+	ft_putchar(' ');
+}
+
 void	print_data(void *ptr, t_data *array, int size)
 {
 	int	i;
@@ -136,71 +165,66 @@ void	print_data(void *ptr, t_data *array, int size)
 				free(array[i].segment);
 			continue;
 		}
-		//if (*(unsigned int*)ptr == MH_MAGIC_64 && !array[i].section && !array[i].is_ind
-		//		&& !array[i].is_abs && !array[i].n_value.n_value64)
-		//	printf("                 ");
-		//else if (*(unsigned int*)ptr == MH_MAGIC && !array[i].section && !array[i].is_ind && !array[i].is_abs && !array[i].n_value.n_value32)
-		//	printf("         ");
 		if ((*(unsigned int*)ptr == MH_MAGIC_64 || *(unsigned int*)ptr == MH_CIGAM_64) && array[i].is_undef && !array[i].n_value.n_value64)
-			printf("                 ");
+			ft_putstr("                 ");
 		else if ((*(unsigned int*)ptr == MH_MAGIC || *(unsigned int*)ptr == MH_CIGAM) && array[i].is_undef && !array[i].n_value.n_value32)
-			printf("         ");
+			ft_putstr("         ");
 		else if (*(unsigned int*)ptr == MH_MAGIC_64 || *(unsigned int*)ptr == MH_CIGAM_64)
-			printf("%016llx ", array[i].n_value.n_value64);
+			print_addr(array[i].n_value.n_value64, ARCH_64);
 		else
-			printf("%08x ", array[i].n_value.n_value32);
+			print_addr(array[i].n_value.n_value32, ARCH_32);
 		if (array[i].section && !ft_strcmp(array[i].section, "__text"))
 		{
 			if (array[i].is_external)
-				printf("T ");
+				ft_putstr("T ");
 			else
-				printf("t ");
+				ft_putstr("t ");
 		}
 		else if (array[i].section && !ft_strcmp(array[i].section, "__bss"))
 		{
 			if (array[i].is_external)
-				printf("B ");
+				ft_putstr("B ");
 			else
-				printf("b ");
+				ft_putstr("b ");
 		}
 		else if (array[i].section && !ft_strcmp(array[i].section, "__data"))
 		{
 			if (array[i].is_external)
-				printf("D ");
+				ft_putstr("D ");
 			else
-				printf("d ");
+				ft_putstr("d ");
 		}
 		else if (array[i].section)
 		{
 			if (array[i].is_external)
-				printf("S ");
+				ft_putstr("S ");
 			else
-				printf("s ");
+				ft_putstr("s ");
 		}
 		else if (array[i].is_abs)
 		{
 			if (array[i].is_external)
-				printf("A ");
+				ft_putstr("A ");
 			else
-				printf("a ");
+				ft_putstr("a ");
 		}
 		else if (array[i].is_ind)
 		{
 			if (array[i].is_external)
-				printf("I ");
+				ft_putstr("I ");
 			else
-				printf("i ");
+				ft_putstr("i ");
 		}
 		else if (array[i].is_undef && array[i].n_value.n_value32 != 0)
 		{
 			if (array[i].is_external)
-				printf("C ");
+				ft_putstr("C ");
 			else
-				printf("c ");
+				ft_putstr("c ");
 		}
 		else
-			printf("U ");
-		printf("%s\n", array[i].name);
+			ft_putstr("U ");
+		ft_putendl(array[i].name);
 		if (array[i].segment)
 			free(array[i].segment);
 		if (array[i].section)
@@ -221,14 +245,9 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 	string_array->is_abs = 0;
 	string_array->is_undef = 0;
 	if (nlist.n_type & N_STAB)
-	{
 		string_array->is_stab = 1;
-	}
 	if (nlist.n_type & N_PEXT)
-	{
 		string_array->is_pext = 1;
-		//printf("PEXTERNAL\n"); // TODO Quand c'est active, mettre lettre en minuscule (non-external)
-	}
 	if ((nlist.n_type & N_TYPE) == N_UNDF)
 		string_array->is_undef = 1;
 	else if ((nlist.n_type & N_TYPE) == N_ABS)
@@ -240,10 +259,7 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 	else if ((nlist.n_type & N_TYPE) == N_INDR)
 		string_array->is_ind = 1;
 	if (nlist.n_type & N_EXT)
-	{
 		string_array->is_external = 1;
-		//printf("EXTERNAL\n"); // SEMBLE ETRE 'U'
-	}
 }
 
 void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
@@ -259,14 +275,9 @@ void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
 	string_array->is_abs = 0;
 	string_array->is_undef = 0;
 	if (nlist.n_type & N_STAB)
-	{
 		string_array->is_stab = 1;
-	}
 	if (nlist.n_type & N_PEXT)
-	{
 		string_array->is_pext = 1;
-		//printf("PEXTERNAL\n"); // TODO Quand c'est active, mettre lettre en minuscule (non-external)
-	}
 	if ((nlist.n_type & N_TYPE) == N_UNDF)
 		string_array->is_undef = 1;
 	else if ((nlist.n_type & N_TYPE) == N_ABS)
@@ -499,9 +510,18 @@ void	process_fat_file(void *ptr, char *filename, int nb_file)
 	while (++i < swap_little_endian(fat_header->nfat_arch))
 	{
 		if (swap_little_endian(fat_header->nfat_arch) > 1)
-			printf("\n%s (for architecture %s):\n", filename, get_cputype(ptr, i));
+		{
+			ft_putchar('\n');
+			ft_putstr(filename);
+			ft_putstr(" (for architecture ");
+			ft_putstr(get_cputype(ptr, i));
+			ft_putendl("):");
+		}
 		else
-			printf("%s:\n", filename);
+		{
+			ft_putstr(filename);
+			ft_putendl(":");
+		}
 		if (fat_header->magic == FAT_CIGAM_64)
 		{
 			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_64->offset);
@@ -524,16 +544,10 @@ void	handle_fat_file(const void *ptr, char *filename, int nb_file)
 	fat_header = (struct fat_header*)ptr;
 	if (fat_header->magic == FAT_CIGAM_64 &&
 			!search_host_arch_64((void*)ptr, filename, nb_file))
-	{
-		//printf("On ne trouve pas l'arch host\n");
 		process_fat_file((void*)ptr, filename, nb_file);
-	}
 	else if (fat_header->magic == FAT_CIGAM &&
 			!search_host_arch((void*)ptr, filename, nb_file))
-	{
-		//printf("On ne trouve pas l'arch host\n");
 		process_fat_file((void*)ptr, filename, nb_file);
-	}
 }
 
 void	handle_arch(void *ptr, int size, char *filename)
@@ -548,14 +562,23 @@ void	handle_arch(void *ptr, int size, char *filename)
 	while (size)
 	{
 		size_name = 0;
-		printf("\n%s", filename);
+		ft_putchar('\n');
+		ft_putstr(filename);
 		size -= sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
 		if (!ft_strncmp(ar->ar_name, "#1/", 3))
 			size_name = ft_atoi(ar->ar_name + 3);
 		if (size_name != 0)
-			printf("(%s):\n", ar->ar_name + sizeof(struct ar_hdr));
+		{
+			ft_putstr("(");
+			ft_putstr(ar->ar_name + sizeof(struct ar_hdr));
+			ft_putendl("):");
+		}
 		else
-			printf("(%s):\n", ar->ar_name);
+		{
+			ft_putstr("(");
+			ft_putstr(ar->ar_name);
+			ft_putendl("):");
+		}
 		if (ft_strcmp(ar->ar_name, ""))
 			ft_nm((void*)ar + sizeof(struct ar_hdr) + size_name, ft_atoi(ar->ar_size), filename, -1);
 		ar = (void*)ar + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
@@ -572,10 +595,9 @@ void	ft_nm(char *ptr, int size, char *filename, int nb_file)
 	{
 		if (nb_file > 1)
 		{	
-			//ft_putchar('\n');
-			//ft_putstr(filename);
-			//ft_putendl(":");
-			printf("\n%s:\n", filename);
+			ft_putchar('\n');
+			ft_putstr(filename);
+			ft_putendl(":");
 		}
 		handle_64(ptr);
 	}
@@ -583,10 +605,9 @@ void	ft_nm(char *ptr, int size, char *filename, int nb_file)
 	{
 		if (nb_file > 1)
 		{
-			//ft_putchar('\n');
-			//ft_putstr(filename);
-			//ft_putendl(":");
-			printf("\n%s:\n", filename);
+			ft_putchar('\n');
+			ft_putstr(filename);
+			ft_putendl(":");
 		}
 		handle(ptr);
 	}
@@ -631,7 +652,7 @@ int	get_stat_file(char *filename, int fd, struct stat *buf)
 {
 	if (fstat(fd, buf) < 0)
 	{
-		printf("Erreur stat"); // TODO
+		//printf("Erreur stat"); // TODO
 		return(1);
 	}
 	if (S_IFDIR & buf->st_mode)
@@ -675,7 +696,7 @@ int	main(int ac, char **av)
 			return (close_fd_error(&fd, 1, 1));
 		if ((ptr = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd[i], 0)) == MAP_FAILED)
 		{
-			printf("MAP FAILED"); //TODO ft_nm <(cat /bin/ls) FAIL !
+			//printf("MAP FAILED"); //TODO ft_nm <(cat /bin/ls) FAIL !
 			return (close_fd_error(&fd, ac - 1, 1));
 		}
 		if (!av[1])
@@ -684,7 +705,7 @@ int	main(int ac, char **av)
 			ft_nm(ptr, buf.st_size, av[i + 1], ac - 1);
 		if ((munmap(ptr, buf.st_size)) == -1)
 		{
-			printf("ERREUR MUNMAP"); //TODO
+			//printf("ERREUR MUNMAP"); //TODO
 			return (close_fd_error(&fd, ac - 1, 1));
 		}
 		i++;
