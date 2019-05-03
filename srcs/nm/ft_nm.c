@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/01 18:55:03 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/03 14:08:47 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ uint64_t	get_64(void *ptr, uint64_t v)
 		return (swap_little_endian(v));
 }
 
-void	get_section_64(void *ptr, struct load_command *lc, int n_sect, t_data *data)
+void	get_section_64(void *ptr, struct load_command *lc, int n_sect, t_data *data, t_info info)
 {
 	int							i;
 	struct segment_command_64	*seg_cmd;
@@ -73,6 +73,8 @@ void	get_section_64(void *ptr, struct load_command *lc, int n_sect, t_data *data
 	int							ncmds;
 	int							total_nsects;
 
+	if (info.begin_ptr > (void*)lc && info.begin_ptr + info.size_file < (void*)lc)
+		return ;
 	ncmds = get_ncmds(ptr);
 	i = 0;
 	total_nsects = 0;
@@ -91,11 +93,13 @@ void	get_section_64(void *ptr, struct load_command *lc, int n_sect, t_data *data
 			}
 		}
 		lc = (void*)lc + get_64(ptr, lc->cmdsize);
+		if (info.begin_ptr > (void*)lc && info.begin_ptr + info.size_file < (void*)lc)
+			break ;
 		i++;
 	}
 }
 
-void	get_section(void* ptr, struct load_command *lc, int n_sect, t_data *data)
+void	get_section(void* ptr, struct load_command *lc, int n_sect, t_data *data, t_info info)
 {
 	int							i;
 	struct segment_command	*seg_cmd;
@@ -103,6 +107,8 @@ void	get_section(void* ptr, struct load_command *lc, int n_sect, t_data *data)
 	int						ncmds;
 	int						total_nsects;
 
+	if (info.begin_ptr > (void*)lc && info.begin_ptr + info.size_file < (void*)lc)
+		return ;
 	ncmds = get_ncmds(ptr);
 	i = 0;
 	total_nsects = 0;
@@ -121,6 +127,8 @@ void	get_section(void* ptr, struct load_command *lc, int n_sect, t_data *data)
 			}
 		}
 		lc = (void*)lc + get_32(ptr, lc->cmdsize);
+		if (info.begin_ptr > (void*)lc && info.begin_ptr + info.size_file < (void*)lc)
+			break ;
 		i++;
 	}
 }
@@ -232,7 +240,7 @@ void	print_data(void *ptr, t_data *array, int size)
 	}
 }
 
-void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
+void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr, t_info info)
 {
 	struct mach_header_64		*header;
 
@@ -253,7 +261,7 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 	else if ((nlist.n_type & N_TYPE) == N_ABS)
 		string_array->is_abs = 1;
 	else if ((nlist.n_type & N_TYPE) == N_SECT)
-		get_section_64(ptr, ptr + sizeof(struct mach_header_64), nlist.n_sect, string_array);
+		get_section_64(ptr, ptr + sizeof(struct mach_header_64), nlist.n_sect, string_array, info);
 	else if ((nlist.n_type & N_TYPE) == N_PBUD)
 		string_array->is_pbud = 1;
 	else if ((nlist.n_type & N_TYPE) == N_INDR)
@@ -262,7 +270,7 @@ void	fill_data_64(t_data *string_array, struct nlist_64 nlist, void *ptr)
 		string_array->is_external = 1;
 }
 
-void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
+void	fill_data(t_data *string_array, struct nlist nlist, void *ptr, t_info info)
 {
 	struct mach_header		*header;
 
@@ -283,7 +291,7 @@ void	fill_data(t_data *string_array, struct nlist nlist, void *ptr)
 	else if ((nlist.n_type & N_TYPE) == N_ABS)
 		string_array->is_abs = 1;
 	else if ((nlist.n_type & N_TYPE) == N_SECT)
-		get_section(ptr, ptr + sizeof(struct mach_header), nlist.n_sect, string_array);
+		get_section(ptr, ptr + sizeof(struct mach_header), nlist.n_sect, string_array, info);
 	else if ((nlist.n_type & N_TYPE) == N_PBUD)
 		string_array->is_pbud = 1;
 	else if ((nlist.n_type & N_TYPE) == N_INDR)
@@ -316,15 +324,18 @@ int		get_n_value(void *ptr, void *nlist, int i)
 		return (swap_little_endian(((struct nlist_64*)nlist)[i].n_value));
 }
 
-void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr)
+void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr, t_info info)
 {
 	int			i;
 	void		*array;
 	t_data		*string_array;
 
 	array = ptr + symoff;
+	if (info.begin_ptr > (void*)array || info.begin_ptr + info.size_file < (void*)array)
+		return ;
 	i = 0;
-	string_array = (t_data*)malloc(nsyms * sizeof(t_data));
+	if (!(string_array = (t_data*)malloc(nsyms * sizeof(t_data))))
+		return ;
 	while (i < nsyms)
 	{
 		string_array[i].segment = NULL;
@@ -333,13 +344,13 @@ void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr)
 		{
 			string_array[i].n_value.n_value64 = get_64(ptr, ((struct nlist_64*)array)[i].n_value);
 			string_array[i].name = ft_strdup(ptr + stroff + get_n_strx(ptr, array, i));
-			fill_data_64(&(string_array[i]), ((struct nlist_64*)array)[i], ptr);
+			fill_data_64(&(string_array[i]), ((struct nlist_64*)array)[i], ptr, info);
 		}
 		else
 		{
 			string_array[i].n_value.n_value32 = get_32(ptr, ((struct nlist*)array)[i].n_value);
 			string_array[i].name = ft_strdup(ptr + stroff + get_n_strx(ptr, array, i));
-			fill_data(&(string_array[i]), ((struct nlist*)array)[i], ptr);
+			fill_data(&(string_array[i]), ((struct nlist*)array)[i], ptr, info);
 		}
 		i++;
 	}
@@ -371,7 +382,7 @@ int		get_symtab_stroff(void *ptr, struct symtab_command *symtab)
 		return (swap_little_endian(symtab->stroff));
 }
 
-void	browse_load_commands(void *ptr, struct load_command *lc)
+void	browse_load_commands(void *ptr, struct load_command *lc, t_info info)
 {
 	struct symtab_command	*symtab;
 	int						i;
@@ -384,28 +395,32 @@ void	browse_load_commands(void *ptr, struct load_command *lc)
 		if (get_32(ptr, lc->cmd) == LC_SYMTAB)
 		{
 			symtab = (struct symtab_command*)lc;
-			browse_symtab(get_symtab_symoff(ptr, symtab), get_symtab_nsyms(ptr, symtab), get_symtab_stroff(ptr, symtab), (void*)ptr);
+			browse_symtab(get_symtab_symoff(ptr, symtab), get_symtab_nsyms(ptr, symtab), get_symtab_stroff(ptr, symtab), (void*)ptr, info);
 			break;
 		}
 		lc = (void*)lc + get_32(ptr, lc->cmdsize);
+		if (info.begin_ptr > (void*)lc || info.begin_ptr + info.size_file < (void*)lc)
+			break;
 		i++;
 	}
 }
 
-void	handle(void *ptr)
+void	handle(void *ptr, t_info info)
 {
 	struct load_command		*lc;
 
 	lc = (void*)ptr + sizeof(struct mach_header);
-	browse_load_commands(ptr, lc);
+	if (info.begin_ptr <= (void*)lc && info.begin_ptr + info.size_file >= (void*)lc)
+		browse_load_commands(ptr, lc, info);
 }
 
-void	handle_64(void *ptr)
+void	handle_64(void *ptr, t_info info)
 {
 	struct load_command		*lc;
 
 	lc = (void*)ptr + sizeof(struct mach_header_64);
-	browse_load_commands(ptr, lc);
+	if (info.begin_ptr <= (void*)lc && info.begin_ptr + info.size_file >= (void*)lc)
+		browse_load_commands(ptr, lc, info);
 }
 
 int		is_fat_file(const void *ptr)
@@ -420,7 +435,7 @@ int		is_fat_file(const void *ptr)
 	return (0);
 }
 
-int		search_host_arch(void *ptr, char *filename, int nb_file)
+int		search_host_arch(void *ptr, char *filename, int nb_file, t_info info)
 {
 	struct fat_header		*fat_header;
 	struct fat_arch			*fat_arch;
@@ -430,20 +445,24 @@ int		search_host_arch(void *ptr, char *filename, int nb_file)
 	i = -1;
 	fat_header = ptr;
 	fat_arch = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
+	if (info.begin_ptr > (void*)fat_arch && info.begin_ptr + info.size_file < (void*)fat_arch)
+		return (1);
 	while (++i < swap_little_endian(fat_header->nfat_arch))
 	{
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		if (swap_little_endian(fat_arch->cputype) == CPU_TYPE_X86_64)
 		{
-			ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename, nb_file);
+			ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename, nb_file, info);
 			return (1);
 		}
 		fat_arch = (void*)fat_arch + sizeof(struct fat_arch);
+		if (info.begin_ptr > (void*)fat_arch && info.begin_ptr + info.size_file < (void*)fat_arch)
+			break ;
 	}
 	return (0);
 }
 
-int		search_host_arch_64(void *ptr, char *filename, int nb_file)
+int		search_host_arch_64(void *ptr, char *filename, int nb_file, t_info info)
 {
 	struct fat_header		*fat_header;
 	struct fat_arch_64		*fat_arch;
@@ -453,20 +472,24 @@ int		search_host_arch_64(void *ptr, char *filename, int nb_file)
 	i = -1;
 	fat_header = ptr;
 	fat_arch = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
+	if (info.begin_ptr > (void*)fat_arch && info.begin_ptr + info.size_file < (void*)fat_arch)
+		return (1);
 	while (++i < swap_little_endian(fat_header->nfat_arch))
 	{
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		if (swap_little_endian(fat_arch->cputype) == CPU_TYPE_X86_64)
 		{
-			ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename, nb_file);
+			ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename, nb_file, info);
 			return (1);
 		}
 		fat_arch = (void*)fat_arch + sizeof(struct fat_arch_64);
+		if (info.begin_ptr > (void*)fat_arch && info.begin_ptr + info.size_file < (void*)fat_arch)
+			break ;
 	}
 	return (0);
 }
 
-char	*get_cputype(void *ptr, int i)
+char	*get_cputype(void *ptr, int i, t_info info)
 {
 	t_fat_arch				fat_arch;
 	struct fat_header		*fat_header;
@@ -475,6 +498,8 @@ char	*get_cputype(void *ptr, int i)
 	if (fat_header->magic == FAT_CIGAM_64)
 	{
 		fat_arch.is_64 = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header)) + i;
+		if (info.begin_ptr > (void*)fat_arch.is_64 && info.begin_ptr + info.size_file < (void*)fat_arch.is_64)
+			return ("undefined");
 		if (swap_little_endian(fat_arch.is_64->cputype) == CPU_TYPE_POWERPC)
 			return ("ppc");
 		else if (swap_little_endian(fat_arch.is_64->cputype) == CPU_TYPE_X86)
@@ -485,6 +510,8 @@ char	*get_cputype(void *ptr, int i)
 	else
 	{
 		fat_arch.is_32 = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header)) + i;
+		if (info.begin_ptr > (void*)fat_arch.is_32 && info.begin_ptr + info.size_file < (void*)fat_arch.is_32)
+			return ("undefined");
 		if (swap_little_endian(fat_arch.is_32->cputype) == CPU_TYPE_POWERPC)
 			return ("ppc");
 		else if (swap_little_endian(fat_arch.is_32->cputype) == CPU_TYPE_X86)
@@ -494,7 +521,7 @@ char	*get_cputype(void *ptr, int i)
 	}
 }
 
-void	process_fat_file(void *ptr, char *filename, int nb_file)
+void	process_fat_file(void *ptr, char *filename, int nb_file, t_info info)
 {
 	struct fat_header		*fat_header;
 	t_fat_arch				fat_arch;
@@ -504,9 +531,17 @@ void	process_fat_file(void *ptr, char *filename, int nb_file)
 	i = -1;
 	fat_header = ptr;
 	if (fat_header->magic == FAT_CIGAM_64)
+	{
 		fat_arch.is_64 = (struct fat_arch_64*)((void*)ptr + sizeof(struct fat_header));
+		if (info.begin_ptr > (void*)fat_arch.is_64 && info.begin_ptr + info.size_file < (void*)fat_arch.is_64)
+			return ;
+	}
 	else
+	{
 		fat_arch.is_32 = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
+		if (info.begin_ptr > (void*)fat_arch.is_32 && info.begin_ptr + info.size_file < (void*)fat_arch.is_32)
+			return ;
+	}
 	while (++i < swap_little_endian(fat_header->nfat_arch))
 	{
 		if (swap_little_endian(fat_header->nfat_arch) > 1)
@@ -514,7 +549,7 @@ void	process_fat_file(void *ptr, char *filename, int nb_file)
 			ft_putchar('\n');
 			ft_putstr(filename);
 			ft_putstr(" (for architecture ");
-			ft_putstr(get_cputype(ptr, i));
+			ft_putstr(get_cputype(ptr, i, info));
 			ft_putendl("):");
 		}
 		else
@@ -525,40 +560,51 @@ void	process_fat_file(void *ptr, char *filename, int nb_file)
 		if (fat_header->magic == FAT_CIGAM_64)
 		{
 			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_64->offset);
-			ft_nm(new_ptr, swap_little_endian(fat_arch.is_64->size), filename, nb_file);
+			if (info.begin_ptr > new_ptr && info.begin_ptr + info.size_file < new_ptr)
+				break ;
+			ft_nm(new_ptr, swap_little_endian(fat_arch.is_64->size), filename, nb_file, info);
 			fat_arch.is_64 = (void*)fat_arch.is_64 + sizeof(struct fat_arch_64);
+			if (info.begin_ptr > (void*)fat_arch.is_64 && info.begin_ptr + info.size_file < (void*)fat_arch.is_64)
+				break ;
 		}
 		else
 		{
 			new_ptr = (void*)ptr + swap_little_endian(fat_arch.is_32->offset);
-			ft_nm(new_ptr, swap_little_endian(fat_arch.is_32->size), filename, nb_file);
+			if (info.begin_ptr > new_ptr && info.begin_ptr + info.size_file < new_ptr)
+				break ;
+			ft_nm(new_ptr, swap_little_endian(fat_arch.is_32->size), filename, nb_file, info);
 			fat_arch.is_32 = (void*)fat_arch.is_32 + sizeof(struct fat_arch);
+			if (info.begin_ptr > (void*)fat_arch.is_32 && info.begin_ptr + info.size_file < (void*)fat_arch.is_32)
+				break ;
 		}
 	}
 }
 
-void	handle_fat_file(const void *ptr, char *filename, int nb_file)
+void	handle_fat_file(const void *ptr, char *filename, int nb_file, t_info info)
 {
 	struct fat_header		*fat_header;
 
 	fat_header = (struct fat_header*)ptr;
 	if (fat_header->magic == FAT_CIGAM_64 &&
-			!search_host_arch_64((void*)ptr, filename, nb_file))
-		process_fat_file((void*)ptr, filename, nb_file);
+			!search_host_arch_64((void*)ptr, filename, nb_file, info))
+		process_fat_file((void*)ptr, filename, nb_file, info);
 	else if (fat_header->magic == FAT_CIGAM &&
-			!search_host_arch((void*)ptr, filename, nb_file))
-		process_fat_file((void*)ptr, filename, nb_file);
+			!search_host_arch((void*)ptr, filename, nb_file, info))
+		process_fat_file((void*)ptr, filename, nb_file, info);
 }
 
-void	handle_arch(void *ptr, int size, char *filename)
+void	handle_arch(void *ptr, int size, char *filename, t_info info)
 {
 	struct ar_hdr	*ar;
 	unsigned int	size_name;
 
-	(void)filename;
-	ar = ptr + 8; // Watch out for corrupted files
+	ar = ptr + 8;
+	if (info.begin_ptr > (void*)ar && info.begin_ptr + info.size_file < (void*)ar)
+		return ;
 	size -= 8 + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
 	ar = (void*)ar + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
+	if (info.begin_ptr > (void*)ar && info.begin_ptr + info.size_file < (void*)ar)
+		return ;
 	while (size)
 	{
 		size_name = 0;
@@ -580,12 +626,19 @@ void	handle_arch(void *ptr, int size, char *filename)
 			ft_putendl("):");
 		}
 		if (ft_strcmp(ar->ar_name, ""))
-			ft_nm((void*)ar + sizeof(struct ar_hdr) + size_name, ft_atoi(ar->ar_size), filename, -1);
+		{
+			if (info.begin_ptr > (void*)ar + sizeof(struct ar_hdr) + size_name
+					&& info.begin_ptr + info.size_file < (void*)ar + sizeof(struct ar_hdr) + size_name)
+				return ;
+			ft_nm((void*)ar + sizeof(struct ar_hdr) + size_name, ft_atoi(ar->ar_size), filename, -1, info);
+		}
 		ar = (void*)ar + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
+		if (info.begin_ptr > (void*)ar && info.begin_ptr + info.size_file < (void*)ar)
+			return ;
 	}
 }
 
-void	ft_nm(char *ptr, int size, char *filename, int nb_file)
+void	ft_nm(char *ptr, int size, char *filename, int nb_file, t_info info)
 {
 	unsigned int	magic_number;
 	static int		i = 0;
@@ -599,7 +652,7 @@ void	ft_nm(char *ptr, int size, char *filename, int nb_file)
 			ft_putstr(filename);
 			ft_putendl(":");
 		}
-		handle_64(ptr);
+		handle_64(ptr, info);
 	}
 	else if (magic_number == MH_MAGIC || magic_number == MH_CIGAM)
 	{
@@ -609,12 +662,12 @@ void	ft_nm(char *ptr, int size, char *filename, int nb_file)
 			ft_putstr(filename);
 			ft_putendl(":");
 		}
-		handle(ptr);
+		handle(ptr, info);
 	}
 	else if (is_fat_file(ptr))
-		handle_fat_file(ptr, filename, nb_file);
+		handle_fat_file(ptr, filename, nb_file, info);
 	else if (!ft_memcmp(ptr, ARMAG, SARMAG))
-		handle_arch(ptr, size, filename);
+		handle_arch(ptr, size, filename, info);
 	i++;
 }
 
@@ -682,6 +735,7 @@ int	main(int ac, char **av)
 	struct stat	buf;
 	char		*ptr;
 	int			i;
+	t_info		info;
 
 	if (!av[1] && !(fd = try_open("a.out", 1)))
 		return(1);
@@ -699,10 +753,12 @@ int	main(int ac, char **av)
 			//printf("MAP FAILED"); //TODO ft_nm <(cat /bin/ls) FAIL !
 			return (close_fd_error(&fd, ac - 1, 1));
 		}
+		info.begin_ptr = ptr;
+		info.size_file = buf.st_size;
 		if (!av[1])
-			ft_nm(ptr, buf.st_size, "a.out", 1);
+			ft_nm(ptr, buf.st_size, "a.out", 1, info);
 		else
-			ft_nm(ptr, buf.st_size, av[i + 1], ac - 1);
+			ft_nm(ptr, buf.st_size, av[i + 1], ac - 1, info);
 		if ((munmap(ptr, buf.st_size)) == -1)
 		{
 			//printf("ERREUR MUNMAP"); //TODO
