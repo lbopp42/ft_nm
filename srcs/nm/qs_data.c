@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   qs_data.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/05/08 10:03:26 by lbopp             #+#    #+#             */
+/*   Updated: 2019/05/08 10:03:28 by lbopp            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ft_nm.h"
 
 void	print_tab(int tab[], int size)
@@ -15,16 +27,17 @@ void	print_tab(int tab[], int size)
 
 int		partitionnement(t_data **data, int premier, int dernier)
 {
-	int j;
-	int i;
-	t_data tmp;
-	
+	int		j;
+	int		i;
+	t_data	tmp;
+
 	j = premier;
 	i = premier;
 	while (i <= dernier - 1)
 	{
 		if (ft_strcmp((*data)[i].name, (*data)[dernier].name) < 0 ||
-				(!ft_strcmp((*data)[i].name, (*data)[dernier].name) && (*data)[i].n_value.n_value64 < (*data)[dernier].n_value.n_value64))
+			(!ft_strcmp((*data)[i].name, (*data)[dernier].name) &&
+			(*data)[i].n_value.n_value64 < (*data)[dernier].n_value.n_value64))
 		{
 			tmp = (*data)[i];
 			(*data)[i] = (*data)[j];
