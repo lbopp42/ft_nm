@@ -6,7 +6,7 @@
 /*   By: lbopp <lbopp@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/11/05 10:58:35 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/01 16:23:41 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/09 15:53:06 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,5 +123,7 @@ t_list_cir		*ft_create_list_cir(char *content);
 void			ft_add_next_list_cir(t_list_cir **cour, t_list_cir *new);
 void			ft_print_list_cir(t_list_cir *list_cir);
 char			*ft_itoa_hex(uint64_t n);
+size_t			ft_strlen_secu(const char *s, void *eos);
+char			*ft_strdup_secu(const char *s1, void *eos);
 
 #endif

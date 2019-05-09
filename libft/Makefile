@@ -6,7 +6,7 @@
 #    By: lbopp <marvin@42.fr>                       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/11/04 15:29:49 by lbopp             #+#    #+#              #
-#    Updated: 2019/05/01 16:24:22 by lbopp            ###   ########.fr        #
+#    Updated: 2019/05/08 15:55:08 by lbopp            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -97,7 +97,9 @@ SRC = ft_memset.c\
 	  ft_create_list_cir.c\
 	  ft_add_next_list_cir.c\
 	  ft_print_list_cir.c\
-	  ft_itoa_hex.c
+	  ft_itoa_hex.c\
+	  ft_strlen_secu.c\
+	  ft_strdup_secu.c
 
 OBJ = $(SRC:.c=.o)
 CFLAGS = -Wall -Werror -Wextra -g

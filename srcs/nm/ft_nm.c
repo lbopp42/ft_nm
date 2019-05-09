@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/08 14:17:22 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/09 16:19:53 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ void	get_section_64(void *ptr, struct load_command *lc, int n_sect, t_data *data
 {
 	int							i;
 	struct segment_command_64	*seg_cmd;
-	struct section_64			section;
+	struct section_64			*section;
 	int							ncmds;
 	int							total_nsects;
 
@@ -75,9 +75,9 @@ void	get_section_64(void *ptr, struct load_command *lc, int n_sect, t_data *data
 			total_nsects += get_64(ptr, seg_cmd->nsects);
 			if (n_sect && total_nsects / n_sect)
 			{
-			    section = ((struct section_64*)(seg_cmd + 1))[n_sect - (total_nsects - get_64(ptr, seg_cmd->nsects)) - 1];
-				data->section = ft_strdup(section.sectname);
-				data->segment = ft_strdup(seg_cmd->segname);
+				section = (struct section_64*)(seg_cmd + 1) + (n_sect - (total_nsects - get_64(ptr, seg_cmd->nsects)) - 1);
+				data->section = ft_strdup_secu(section->sectname, info.begin_ptr + info.size_file);
+				data->segment = ft_strdup_secu(seg_cmd->segname, info.begin_ptr + info.size_file);
 				return ;
 			}
 		}
@@ -91,7 +91,7 @@ void	get_section(void* ptr, struct load_command *lc, int n_sect, t_data *data, t
 {
 	int							i;
 	struct segment_command	*seg_cmd;
-	struct section			section;
+	struct section			*section;
 	int						ncmds;
 	int						total_nsects;
 
@@ -108,9 +108,9 @@ void	get_section(void* ptr, struct load_command *lc, int n_sect, t_data *data, t
 			total_nsects += get_32(ptr, seg_cmd->nsects);
 			if (n_sect && total_nsects / n_sect)
 			{
-			    section = ((struct section*)(seg_cmd + 1))[n_sect - (total_nsects - get_32(ptr, seg_cmd->nsects)) - 1];
-				data->section = ft_strdup(section.sectname);
-				data->segment = ft_strdup(seg_cmd->segname);
+				section = (struct section*)(seg_cmd + 1) + (n_sect - (total_nsects - get_32(ptr, seg_cmd->nsects)) - 1);
+				data->section = ft_strdup_secu(section->sectname, info.begin_ptr + info.size_file);
+				data->segment = ft_strdup_secu(seg_cmd->segname, info.begin_ptr + info.size_file);
 				return ;
 			}
 		}
@@ -310,7 +310,7 @@ void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr, t_info info)
 			if (info.begin_ptr > ptr + stroff + get_n_strx(ptr, array, i)
 					|| info.begin_ptr + info.size_file < ptr + stroff + get_n_strx(ptr, array, i))
 				return ;
-			string_array[i].name = ft_strdup(ptr + stroff + get_n_strx(ptr, array, i));
+			string_array[i].name = ft_strdup_secu(ptr + stroff + get_n_strx(ptr, array, i), info.begin_ptr + info.size_file);
 			fill_data_64(&(string_array[i]), ((struct nlist_64*)array)[i], ptr, info);
 		}
 		else
@@ -319,7 +319,7 @@ void	browse_symtab(int symoff, int nsyms, int stroff, void *ptr, t_info info)
 			if (info.begin_ptr > ptr + stroff + get_n_strx(ptr, array, i)
 					|| info.begin_ptr + info.size_file < ptr + stroff + get_n_strx(ptr, array, i))
 				return ;
-			string_array[i].name = ft_strdup(ptr + stroff + get_n_strx(ptr, array, i));
+			string_array[i].name = ft_strdup_secu(ptr + stroff + get_n_strx(ptr, array, i), info.begin_ptr + info.size_file);
 			fill_data(&(string_array[i]), ((struct nlist*)array)[i], ptr, info);
 		}
 		i++;
@@ -569,16 +569,27 @@ void	process_fat_file(void *ptr, char *filename, int nb_file, t_info info)
 {
 	struct fat_header	*fat_header;
 	uint32_t			i;
+	void				*new_ptr;
+	struct fat_arch		*fat_arch;
 
 	i = -1;
 	fat_header = ptr;
+	fat_arch = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
+	if (info.begin_ptr > (void*)fat_arch || info.begin_ptr + info.size_file < (void*)fat_arch)
+		return ;
+	sleep(4);
 	while (++i < swap_little_endian(fat_header->nfat_arch))
 	{
 		print_arch_name(fat_header, filename, get_cputype(ptr, i, info));
-		if (fat_header->magic == FAT_CIGAM_64)
-			process_fat_64(ptr, filename, nb_file, info);
-		else
-			process_fat_32(ptr, filename, nb_file, info);
+		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
+		if (info.begin_ptr > new_ptr || info.begin_ptr + info.size_file < new_ptr)
+			break ;
+		if (swap_little_endian(fat_arch->size))
+			break;
+		ft_nm(new_ptr, swap_little_endian(fat_arch->size), filename, nb_file, info);
+		fat_arch = (void*)fat_arch + sizeof(struct fat_arch);
+		if (info.begin_ptr > (void*)fat_arch || info.begin_ptr + info.size_file < (void*)fat_arch)
+			break ;
 	}
 }
 

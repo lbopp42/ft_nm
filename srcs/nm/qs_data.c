@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/08 10:03:26 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/08 10:03:28 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/08 16:01:19 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,10 @@ int		partitionnement(t_data **data, int premier, int dernier)
 	i = premier;
 	while (i <= dernier - 1)
 	{
-		if (ft_strcmp((*data)[i].name, (*data)[dernier].name) < 0 ||
+		if (((*data)[i].name && (*data)[dernier].name) &&
+			(ft_strcmp((*data)[i].name, (*data)[dernier].name) < 0 ||
 			(!ft_strcmp((*data)[i].name, (*data)[dernier].name) &&
-			(*data)[i].n_value.n_value64 < (*data)[dernier].n_value.n_value64))
+			(*data)[i].n_value.n_value64 < (*data)[dernier].n_value.n_value64)))
 		{
 			tmp = (*data)[i];
 			(*data)[i] = (*data)[j];

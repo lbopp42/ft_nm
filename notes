@@ -16,3 +16,5 @@ Multi fichiers:
 
 ATTENTION:
 - /usr/bin/ccmake -> enorme fichier tres long
+
+probleme avec le ptr pour la stringtable on a le meme dans les 2
