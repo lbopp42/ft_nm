@@ -6,7 +6,7 @@
 #    By: lbopp <marvin@42.fr>                       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/12 10:03:24 by lbopp             #+#    #+#              #
-#    Updated: 2019/04/24 15:36:21 by lbopp            ###   ########.fr        #
+#    Updated: 2019/05/10 13:41:48 by lbopp            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,8 @@ CFLAGS = -Wall -Werror -Wextra -g -fsanitize=address
 LIBFT = libft/
 CC = clang
 SRC_NAME = nm/ft_nm.c\
+		   nm/fill_section.c\
+		   nm/tools1.c\
 		   nm/qs_data.c
 SRC_PATH = srcs
 SRC = $(addprefix $(SRC_PATH)/,$(SRC_NAME))

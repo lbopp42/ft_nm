@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/03 13:07:31 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/10 14:48:45 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,12 +38,6 @@ typedef union	u_fat_arch
 	struct fat_arch	*is_32;
 }				t_fat_arch;
 
-typedef struct	s_info
-{
-	void	*begin_ptr;
-	int		size_file;
-}				t_info;
-
 typedef struct	s_data
 {
 	char		*name;
@@ -59,8 +53,32 @@ typedef struct	s_data
 	int			is_undef;
 }				t_data;
 
-void	ft_nm(char *ptr, int size, char *filename, int nb_file, t_info info);
+typedef struct	s_info
+{
+	void	*f_ptr;
+	int		size_file;
+	t_data	*data;
+	int		c;
+}				t_info;
 
-t_data	*qs_data(t_data *data, int premier, int dernier);
+void		ft_nm(char *ptr, int size, char *filename, int nb_file, t_info *info);
+
+t_data		*qs_data(t_data *data, int premier, int dernier);
+
+/*
+**	TOOL1.C
+*/
+uint32_t	swap_little_endian(uint32_t nb);
+int			get_ncmds(void *ptr, t_info info);
+uint32_t	get_32(void *ptr, uint32_t v);
+uint64_t	get_64(void *ptr, uint64_t v);
+
+/*
+**	FILL_SECTION.C
+*/
+void		get_section(void *ptr, struct load_command *lc, int n_sect,
+		t_info *i);
+void		get_section_64(void *ptr, struct load_command *lc,
+		int n_sect, t_info *i);
 
 #endif

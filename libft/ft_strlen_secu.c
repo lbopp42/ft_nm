@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/08 15:46:48 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/09 16:18:24 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/10 10:37:37 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ size_t	ft_strlen_secu(const char *s, void *eos)
 	while (s[i] != '\0')
 	{
 		i++;
-		if ((void*)(&s[i]) >= eos)
+		if (&s[i] >= (char*)eos)
 			return (0);
 	}
 	return (i);
