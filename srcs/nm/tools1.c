@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/10 12:58:02 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/10 15:29:24 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/10 17:16:18 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,4 +52,13 @@ uint64_t	get_64(void *ptr, uint64_t v)
 		return (v);
 	else
 		return (swap_little_endian(v));
+}
+
+int			is_macho64(void *ptr)
+{
+	if (*(unsigned int*)ptr == MH_CIGAM_64
+			|| *(unsigned int*)ptr == MH_MAGIC_64)
+		return (1);
+	else
+		return (0);
 }
