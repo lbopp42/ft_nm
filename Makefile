@@ -6,7 +6,7 @@
 #    By: lbopp <marvin@42.fr>                       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/12 10:03:24 by lbopp             #+#    #+#              #
-#    Updated: 2019/05/10 18:02:05 by lbopp            ###   ########.fr        #
+#    Updated: 2019/05/11 11:33:31 by lbopp            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,10 +20,14 @@ SRC_NAME = nm/ft_nm.c\
 		   nm/tools2.c\
 		   nm/fill_data.c\
 		   nm/handle_macho.c\
+		   nm/handle_fat.c\
+		   nm/handle_arch.c\
 		   nm/browse_symtab.c\
 		   nm/get_cpu_type.c\
+		   nm/search_host.c\
 		   nm/print.c\
-		   nm/qs_data.c
+		   nm/qs_data.c\
+		   nm/launch_nm.c
 SRC_PATH = srcs
 SRC = $(addprefix $(SRC_PATH)/,$(SRC_NAME))
 OBJ = $(SRC:.c=.o)

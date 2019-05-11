@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/10 17:16:44 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/10 17:17:52 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/11 11:56:15 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,4 +44,18 @@ int		get_n_value(void *ptr, void *nlist, int i)
 		return (swap_little_endian(((struct nlist*)nlist)[i].n_value));
 	else
 		return (swap_little_endian(((struct nlist_64*)nlist)[i].n_value));
+}
+
+int		is_fat_file(const void *ptr, t_info info)
+{
+	unsigned int	magic_number;
+
+	if (info.f_ptr > ptr || info.f_ptr + info.size_file < ptr)
+		return (0);
+	magic_number = *(int*)ptr;
+	if (magic_number == FAT_MAGIC || magic_number == FAT_CIGAM)
+		return (1);
+	else if (magic_number == FAT_MAGIC_64 || magic_number == FAT_CIGAM_64)
+		return (1);
+	return (0);
 }

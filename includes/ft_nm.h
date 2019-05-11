@@ -6,25 +6,25 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/10 18:00:46 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/11 12:01:21 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_NM_H
 # define FT_NM_H
 
-#include <stdio.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <mach-o/loader.h>
-#include <mach-o/nlist.h>
-#include <mach-o/fat.h>
-#include <errno.h>
-#include <ar.h>
-#include "libft.h"
-#define ARCH_32 32
-#define ARCH_64 64
+# include <stdio.h>
+# include <fcntl.h>
+# include <sys/stat.h>
+# include <sys/mman.h>
+# include <mach-o/loader.h>
+# include <mach-o/nlist.h>
+# include <mach-o/fat.h>
+# include <errno.h>
+# include <ar.h>
+# include "libft.h"
+# define ARCH_32 32
+# define ARCH_64 64
 
 typedef union	u_value
 {
@@ -35,7 +35,7 @@ typedef union	u_value
 typedef union	u_fat_arch
 {
 	struct fat_arch_64	*is_64;
-	struct fat_arch	*is_32;
+	struct fat_arch		*is_32;
 }				t_fat_arch;
 
 typedef struct	s_data
@@ -55,67 +55,99 @@ typedef struct	s_data
 
 typedef struct	s_info
 {
-	void	*f_ptr;
-	int		size_file;
-	t_data	*data;
-	int		c;
+	void		*f_ptr;
+	int			size_file;
+	t_data		*data;
+	char		*filename;
+	int			c;
 }				t_info;
 
-void		ft_nm(char *ptr, int size, char *filename, int nb_file, t_info *info);
+void			ft_nm(char *ptr, int size, int nb_file, t_info *info);
 
-t_data		*qs_data(t_data *data, int premier, int dernier);
+t_data			*qs_data(t_data *data, int premier, int dernier);
 
 /*
 **	TOOL1.C
 */
-uint32_t	swap_little_endian(uint32_t nb);
-int			get_ncmds(void *ptr, t_info info);
-uint32_t	get_32(void *ptr, uint32_t v);
-uint64_t	get_64(void *ptr, uint64_t v);
-int			is_macho64(void *ptr);
+uint32_t		swap_little_endian(uint32_t nb);
+int				get_ncmds(void *ptr, t_info info);
+uint32_t		get_32(void *ptr, uint32_t v);
+uint64_t		get_64(void *ptr, uint64_t v);
+int				is_macho64(void *ptr);
 
 /*
 **	TOOL2.C
 */
-int		get_n_strx(void *ptr, void *nlist, int c, t_info i);
-int		get_n_value(void *ptr, void *nlist, int i);
+int				get_n_strx(void *ptr, void *nlist, int c, t_info i);
+int				get_n_value(void *ptr, void *nlist, int i);
+int				is_fat_file(const void *ptr, t_info info);
 
 /*
 **	FILL_SECTION.C
 */
-void		get_section(void *ptr, struct load_command *lc, int n_sect,
+void			get_section(void *ptr, struct load_command *lc, int n_sect,
 		t_info *i);
-void		get_section_64(void *ptr, struct load_command *lc,
+void			get_section_64(void *ptr, struct load_command *lc,
 		int n_sect, t_info *i);
 
 /*
 **	PRINT.C
 */
-void		print_data(void *ptr, t_data *array, int size);
+void			print_data(void *ptr, t_data *array, int size);
 
 /*
 **	FILL_DATA.C
 */
-void		fill_data_64(struct nlist_64 nlist, void *ptr,
+void			fill_data_64(struct nlist_64 nlist, void *ptr,
 		t_info *info, int c);
-void		fill_data_32(struct nlist nlist, void *ptr,
+void			fill_data_32(struct nlist nlist, void *ptr,
 		t_info *info, int c);
 
 /*
 **	BROWSE_SYMTAB.C
 */
-void		browse_symtab(void *array, struct symtab_command *symtab,
+void			browse_symtab(void *array, struct symtab_command *symtab,
 		void *ptr, t_info *i);
 
 /*
 **	HANDLE_MACHO.C
 */
-void		handle(void *ptr, t_info *i, char *filename, int nb_file);
-void		handle_64(void *ptr, t_info *i, char *filename, int nb_file);
+void			handle(void *ptr, t_info *i, char *filename, int nb_file);
+void			handle_64(void *ptr, t_info *i, char *filename, int nb_file);
 
 /*
 **	GET_CPU_TYPE.C
 */
-char		*get_cputype(void *ptr, int i, t_info info);
+char			*get_cputype(void *ptr, int i, t_info info);
+
+/*
+**	SEARCH_HOST.C
+*/
+int				search_host_arch(void *ptr, int nb_file, t_info *i);
+int				search_host_arch_64(void *ptr, int nb_file, t_info *info);
+
+/*
+**	HANDLE_FAT.C
+*/
+void			handle_fat_file(const void *ptr, char *filename,
+		int nb_file, t_info *info);
+
+/*
+**	HANDLE_ARCH.C
+*/
+void			handle_arch(void *ptr, int size, char *filename, t_info *i);
+
+/*
+**	LAUNCH_NM.C
+*/
+int				nm_no_arg(void);
+void			ft_nm(char *ptr, int size, int nb_file, t_info *info);
+
+/*
+**	FT_NM.C
+*/
+int				close_fd_error(int fd, int return_nb);
+int				get_stat_file(char *filename, int fd, struct stat *buf);
+int				try_open(char *filename);
 
 #endif
