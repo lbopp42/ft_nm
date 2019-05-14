@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/11 11:13:53 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/13 10:35:28 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/14 13:49:20 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,8 @@ static void	print_arch_name(struct fat_header *fat_header, char *filename,
 {
 	if (swap_little_endian(fat_header->nfat_arch) > 1)
 	{
-		ft_putchar('\n');
 		ft_putstr(filename);
-		ft_putstr(" (for architecture ");
+		ft_putstr(" (architecture ");
 		ft_putstr(cpu_name);
 		ft_putendl("):");
 	}
@@ -45,11 +44,15 @@ static void	process_fat_file(void *ptr, char *f_name, int nb_file, t_info *i)
 		return ;
 	while (++c < swap_little_endian(fat_header->nfat_arch))
 	{
+		if (get_cputype(ptr, c, *i) && !ft_strcmp(get_cputype(ptr, c, *i), "ppc"))
+			(*i).is_ppc = 1;
+		else
+			(*i).is_ppc = 0;
 		print_arch_name(fat_header, f_name, get_cputype(ptr, c, *i));
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		if ((*i).f_ptr > new_ptr || (*i).f_ptr + (*i).size_file < new_ptr)
 			break ;
-		if (swap_little_endian(fat_arch->size))
+		if (!swap_little_endian(fat_arch->size))
 			break ;
 		ft_otool(new_ptr, swap_little_endian(fat_arch->size), nb_file, i);
 		fat_arch = (void*)fat_arch + sizeof(struct fat_arch);

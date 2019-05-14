@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/13 10:47:46 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/14 13:14:39 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ t_info	init_info(void *ptr, int size, char *filename)
 	info.f_ptr = ptr;
 	info.size_file = size;
 	info.filename = filename;
+	info.is_ppc = 0;
 	return (info);
 }
 

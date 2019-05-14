@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/11 11:10:05 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/13 10:45:11 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/14 17:27:58 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ int	search_host_arch(void *ptr, int nb_file, t_info *i)
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		if (swap_little_endian(fat_arch->cputype) == CPU_TYPE_X86_64)
 		{
+			if (ft_memcmp(ptr, ARMAG, SARMAG))
+				ft_putendstr(i->filename, ":\n");
 			ft_otool(new_ptr, swap_little_endian(fat_arch->size), nb_file, i);
 			return (1);
 		}
@@ -56,6 +58,8 @@ int	search_host_arch_64(void *ptr, int nb_file,
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		if (swap_little_endian(fat_arch->cputype) == CPU_TYPE_X86_64)
 		{
+			if (ft_memcmp(ptr, ARMAG, SARMAG))
+				ft_putendstr(info->filename, ":\n");
 			ft_otool(new_ptr, swap_little_endian(fat_arch->size), nb_file, info);
 			return (1);
 		}

@@ -6,12 +6,12 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/13 14:03:13 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/14 13:45:48 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef FT_NM_H
-# define FT_NM_H
+#ifndef FT_OTOOL_H
+# define FT_OTOOL_H
 
 # include <stdio.h>
 # include <fcntl.h>
@@ -25,6 +25,7 @@
 # include "libft.h"
 # define ARCH_32 -2
 # define ARCH_64 -3
+# define PPC -4
 
 typedef union	u_value
 {
@@ -44,6 +45,7 @@ typedef struct	s_info
 	int			size_file;
 	char		*filename;
 	int			c;
+	int			is_ppc;
 }				t_info;
 
 /*

@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/11 11:19:52 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/13 10:35:17 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/14 10:27:34 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,10 +56,11 @@ void		handle_arch(void *ptr, int size, char *filename, t_info *i)
 	ar = (void*)ar + sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
 	if ((*i).f_ptr > (void*)ar || (*i).f_ptr + (*i).size_file < (void*)ar)
 		return ;
+	ft_putstr("Archive : ");
+	ft_putendl(filename);
 	while (size)
 	{
 		size_name = 0;
-		ft_putchar('\n');
 		ft_putstr(filename);
 		size -= sizeof(struct ar_hdr) + ft_atoi(ar->ar_size);
 		if (!ft_strncmp(ar->ar_name, "#1/", 3))
