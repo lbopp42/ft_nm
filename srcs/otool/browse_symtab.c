@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/10 17:29:45 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/15 14:55:45 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 15:51:09 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,7 @@ struct section_64	*get_section_text_64(struct load_command *lc, t_info *i)
 
 	(void)i;
 	seg = (struct segment_command_64*)lc;
-	printf("%s\n", seg->segname);
 	sect = (struct section_64*)(seg + 1);
-	printf("%s %p\n", sect[0].sectname, sect[0].sectname);
 	return (sect);
 }
 

@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/10 17:47:37 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/15 14:55:34 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 15:55:31 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,12 +59,7 @@ void		handle(void *ptr, t_info *i, char *filename, int nb_file)
 {
 	struct load_command		*lc;
 
-	if (nb_file > 1)
-	{
-		ft_putchar('\n');
-		ft_putstr(filename);
-		ft_putendl(":");
-	}
+	(void)nb_file;
 	lc = (void*)ptr + sizeof(struct mach_header);
 	if (ptr == (*i).f_ptr && !i->is_arch)
 	{
