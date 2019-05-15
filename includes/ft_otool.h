@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/15 14:00:17 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 14:56:27 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,7 @@ int				is_macho64(void *ptr);
 int				get_n_strx(void *ptr, void *nlist, int c, t_info i);
 int				get_n_value(void *ptr, void *nlist, int i);
 int				is_fat_file(const void *ptr, t_info info);
+int				get_stat(char *filename, int fd, struct stat *buf);
 
 /*
 **	GET_CPU_TYPE.C
@@ -104,5 +105,12 @@ char			*get_cputype(void *ptr, int i, t_info info);
 */
 void		browse_symtab(void *array, struct symtab_command *symtab,
 		void *ptr, t_info *i);
+
+/*
+**	PRINT_TEXT_SECTION.C
+*/
+void		print_section_text(void *ptr, struct segment_command *seg,
+		t_info i);
+void		print_section_text_64(void *ptr, struct segment_command_64 *seg);
 
 #endif

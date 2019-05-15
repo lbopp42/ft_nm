@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/11 11:13:53 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/15 14:02:38 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 14:26:23 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,35 +31,31 @@ static void	print_arch_name(struct fat_header *fat_header, char *filename,
 		ft_putendstr(filename, ":\n");
 }
 
-static void	process_fat_file(void *ptr, char *f_name, int nb_file, t_info *i)
+static void	process_fat_file(void *p, char *f_name, int nb_file, t_info *i)
 {
 	struct fat_header	*fat_header;
 	uint32_t			c;
 	void				*new_ptr;
-	struct fat_arch		*fat_arch;
+	struct fat_arch		*ar;
 
 	c = -1;
-	fat_header = ptr;
-	fat_arch = (struct fat_arch*)((void*)ptr + sizeof(struct fat_header));
-	if ((*i).f_ptr > (void*)fat_arch
-			|| (*i).f_ptr + (*i).size_file < (void*)fat_arch)
+	fat_header = p;
+	ar = (struct fat_arch*)((void*)p + sizeof(struct fat_header));
+	if ((*i).f_ptr > (void*)ar || (*i).f_ptr + (*i).size_file < (void*)ar)
 		return ;
 	while (++c < swap_little_endian(fat_header->nfat_arch))
 	{
-		if (get_cputype(ptr, c, *i) && !ft_strcmp(get_cputype(ptr, c, *i), "ppc"))
-			(*i).is_ppc = 1;
-		else
-			(*i).is_ppc = 0;
-		print_arch_name(fat_header, f_name, get_cputype(ptr, c, *i), i);
-		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
+		i->is_ppc = (get_cputype(p, c, *i) && !ft_strcmp(get_cputype(p, c, *i),
+				"ppc")) ? 1 : 0;
+		print_arch_name(fat_header, f_name, get_cputype(p, c, *i), i);
+		new_ptr = (void*)p + swap_little_endian(ar->offset);
 		if ((*i).f_ptr > new_ptr || (*i).f_ptr + (*i).size_file < new_ptr)
 			break ;
-		if (!swap_little_endian(fat_arch->size))
+		if (!swap_little_endian(ar->size))
 			break ;
-		ft_otool(new_ptr, swap_little_endian(fat_arch->size), nb_file, i);
-		fat_arch = (void*)fat_arch + sizeof(struct fat_arch);
-		if ((*i).f_ptr > (void*)fat_arch
-				|| (*i).f_ptr + (*i).size_file < (void*)fat_arch)
+		ft_otool(new_ptr, swap_little_endian(ar->size), nb_file, i);
+		ar = (void*)ar + sizeof(struct fat_arch);
+		if ((*i).f_ptr > (void*)ar || (*i).f_ptr + (*i).size_file < (void*)ar)
 			break ;
 	}
 }

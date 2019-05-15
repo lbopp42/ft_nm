@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/15 10:54:22 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 14:14:25 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,7 @@ static int	close_free_fd(int **fd, int size, int return_nb)
 	return (return_nb);
 }
 
-
-int		*try_open_otool(char *filename, int nb)
+int			*try_open_otool(char *filename, int nb)
 {
 	int		*fd;
 	int		i;
@@ -54,21 +53,7 @@ int		*try_open_otool(char *filename, int nb)
 	return (fd);
 }
 
-int		get_stat(char *filename, int fd, struct stat *buf)
-{
-	if (fstat(fd, buf) < 0)
-		return (1);
-	if (S_IFDIR & buf->st_mode)
-	{
-		ft_putstr_fd("ft_otool: ", 2);
-		ft_putstr_fd(filename, 2);
-		ft_putendl_fd(": Is a directory.", 2);
-		return (1);
-	}
-	return (0);
-}
-
-t_info	init_info(void *ptr, int size, char *filename)
+t_info		init_info(void *ptr, int size, char *filename)
 {
 	t_info		info;
 
@@ -80,7 +65,17 @@ t_info	init_info(void *ptr, int size, char *filename)
 	return (info);
 }
 
-int		main(int ac, char **av)
+int			otool_no_arg(int ac)
+{
+	if (ac < 2)
+	{
+		ft_putendl_fd("ft_otool: at least one file must be specified", 2);
+		return (1);
+	}
+	return (0);
+}
+
+int			main(int ac, char **av)
 {
 	int			*fd;
 	struct stat	buf;
@@ -88,11 +83,8 @@ int		main(int ac, char **av)
 	int			i;
 	t_info		info;
 
-	if (ac < 2)
-	{
-		ft_putendl_fd("ft_otool: at least one file must be specified", 2);
+	if (otool_no_arg(ac))
 		return (1);
-	}
 	if (!(fd = try_open_otool(av[1], ac - 1)))
 		return (1);
 	i = -1;

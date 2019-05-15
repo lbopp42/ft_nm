@@ -6,13 +6,13 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/10 17:29:45 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/13 14:54:40 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 14:55:45 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_otool.h"
 
-static int	check_symtab(void *ptr, void *array, t_info i)
+static int			check_symtab(void *ptr, void *array, t_info i)
 {
 	if (is_macho64(ptr)
 		&& (i.f_ptr <= (void*)((struct nlist_64*)array + i.c)
@@ -26,20 +26,15 @@ static int	check_symtab(void *ptr, void *array, t_info i)
 		return (0);
 }
 
-struct section	*get_section_text(struct load_command *lc, t_info *i)
+struct section		*get_section_text(struct load_command *lc, t_info *i)
 {
 	struct section			*sect;
 	struct segment_command	*seg;
 
 	(void)i;
-	printf("ICI\n");
 	seg = (struct segment_command*)lc;
-	printf("%s avec nsect = %d\n", seg->segname, seg->nsects);
 	seg = seg + sizeof(*seg) * 2;
-	printf("%s avec nsect = %d\n", seg->segname, seg->nsects);
 	sect = (struct section*)(seg + 1);
-	printf("%s %p\n", sect->sectname, sect->sectname);
-	sleep(2);
 	return (sect);
 }
 
@@ -56,7 +51,7 @@ struct section_64	*get_section_text_64(struct load_command *lc, t_info *i)
 	return (sect);
 }
 
-void		browse_symtab(void *array, struct symtab_command *symtab,
+void				browse_symtab(void *array, struct symtab_command *symtab,
 		void *ptr, t_info *i)
 {
 	(*i).c = -1;

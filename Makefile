@@ -6,7 +6,7 @@
 #    By: lbopp <marvin@42.fr>                       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/12 10:03:24 by lbopp             #+#    #+#              #
-#    Updated: 2019/05/13 14:25:30 by lbopp            ###   ########.fr        #
+#    Updated: 2019/05/15 14:56:10 by lbopp            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,6 +38,7 @@ SRC_NAME_OTOOL = otool/ft_otool.c\
 				 otool/tools1.c\
 		   	  	 otool/tools2.c\
 				 otool/browse_symtab.c\
+				 otool/print_text_section.c\
 				 otool/get_cpu_type.c
 SRC_PATH = srcs
 SRC_NM = $(addprefix $(SRC_PATH)/,$(SRC_NAME_NM))

@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/10 17:03:35 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/13 11:01:54 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 14:05:56 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,9 +37,8 @@ static void	print_addr_hex(uint64_t n_value, int arch)
 		return ;
 	}
 	free(s);
-	ft_putstr(addr);
+	ft_putendstr(addr, " ");
 	free(addr);
-	ft_putchar(' ');
 }
 
 static char	get_char_sym(t_data elem)

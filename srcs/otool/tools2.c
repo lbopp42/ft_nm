@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/10 17:16:44 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/11 11:56:15 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 14:28:40 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,5 +57,19 @@ int		is_fat_file(const void *ptr, t_info info)
 		return (1);
 	else if (magic_number == FAT_MAGIC_64 || magic_number == FAT_CIGAM_64)
 		return (1);
+	return (0);
+}
+
+int		get_stat(char *filename, int fd, struct stat *buf)
+{
+	if (fstat(fd, buf) < 0)
+		return (1);
+	if (S_IFDIR & buf->st_mode)
+	{
+		ft_putstr_fd("ft_otool: ", 2);
+		ft_putstr_fd(filename, 2);
+		ft_putendl_fd(": Is a directory.", 2);
+		return (1);
+	}
 	return (0);
 }
