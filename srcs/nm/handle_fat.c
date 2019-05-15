@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/11 11:13:53 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/11 11:52:48 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 15:28:43 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ static void	process_fat_file(void *ptr, char *f_name, int nb_file, t_info *i)
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		if ((*i).f_ptr > new_ptr || (*i).f_ptr + (*i).size_file < new_ptr)
 			break ;
-		if (swap_little_endian(fat_arch->size))
+		if (!swap_little_endian(fat_arch->size))
 			break ;
 		ft_nm(new_ptr, swap_little_endian(fat_arch->size), nb_file, i);
 		fat_arch = (void*)fat_arch + sizeof(struct fat_arch);
