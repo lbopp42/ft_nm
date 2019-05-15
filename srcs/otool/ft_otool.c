@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:03:10 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/14 13:14:39 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 10:54:22 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ int		get_stat(char *filename, int fd, struct stat *buf)
 		return (1);
 	if (S_IFDIR & buf->st_mode)
 	{
-		ft_putstr_fd("ft_nm: ", 2);
+		ft_putstr_fd("ft_otool: ", 2);
 		ft_putstr_fd(filename, 2);
 		ft_putendl_fd(": Is a directory.", 2);
 		return (1);
@@ -76,6 +76,7 @@ t_info	init_info(void *ptr, int size, char *filename)
 	info.size_file = size;
 	info.filename = filename;
 	info.is_ppc = 0;
+	info.is_arch = 0;
 	return (info);
 }
 

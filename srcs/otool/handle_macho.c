@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/10 17:47:37 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/14 13:53:51 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 14:01:25 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ void		print_section_text_64(void *ptr, struct segment_command_64 *seg)
 	sect = (struct section_64*)(seg + 1);
 	while (c < get_64(ptr, seg->nsects))
 	{
-		if (!ft_strcmp(sect->sectname, "__text"))
+		if (!ft_strcmp(sect->sectname, "__text") && get_64(ptr, sect->size))
 			print_memory(ptr + get_64(ptr, sect->offset), get_64(ptr, sect->size), get_64(ptr, sect->addr), ARCH_64);
 		sect += 1;
 		c++;
@@ -100,9 +100,9 @@ void		print_section_text(void *ptr, struct segment_command *seg, t_info i)
 	sect = (struct section*)(seg + 1);
 	while (c < get_32(ptr, seg->nsects))
 	{
-		if (!ft_strcmp(sect->sectname, "__text") && i.is_ppc)
+		if (!ft_strcmp(sect->sectname, "__text") && i.is_ppc && get_32(ptr, sect->size))
 			print_memory(ptr + get_32(ptr, sect->offset), get_32(ptr, sect->size), get_32(ptr, sect->addr), PPC);
-		else if (!ft_strcmp(sect->sectname, "__text"))
+		else if (!ft_strcmp(sect->sectname, "__text") && get_32(ptr, sect->size))
 			print_memory(ptr + get_32(ptr, sect->offset), get_32(ptr, sect->size), get_32(ptr, sect->addr), ARCH_32);
 		sect += 1;
 		c++;
@@ -164,7 +164,7 @@ void		handle(void *ptr, t_info *i, char *filename, int nb_file)
 		ft_putendl(":");
 	}
 	lc = (void*)ptr + sizeof(struct mach_header);
-	if (ptr == (*i).f_ptr)
+	if (ptr == (*i).f_ptr && !i->is_arch)
 	{
 		ft_putstr(filename);
 		ft_putendl(":");
@@ -185,7 +185,7 @@ void		handle_64(void *ptr, t_info *i, char *filename, int nb_file)
 		ft_putendl(":");
 	}
 	lc = (void*)ptr + sizeof(struct mach_header_64);
-	if (ptr == (*i).f_ptr)
+	if (ptr == (*i).f_ptr && !i->is_arch)
 	{
 		ft_putstr(filename);
 		ft_putendl(":");

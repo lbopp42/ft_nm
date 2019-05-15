@@ -6,15 +6,19 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/11 11:13:53 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/14 13:49:20 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/15 14:02:38 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_otool.h"
 
 static void	print_arch_name(struct fat_header *fat_header, char *filename,
-		char *cpu_name)
+		char *cpu_name, t_info *i)
 {
+	struct fat_arch		*fat_arch;
+
+	fat_arch = (struct fat_arch*)((void*)i->f_ptr + sizeof(struct fat_header));
+	(void)i;
 	if (swap_little_endian(fat_header->nfat_arch) > 1)
 	{
 		ft_putstr(filename);
@@ -22,11 +26,9 @@ static void	print_arch_name(struct fat_header *fat_header, char *filename,
 		ft_putstr(cpu_name);
 		ft_putendl("):");
 	}
-	else
-	{
-		ft_putstr(filename);
-		ft_putendl(":");
-	}
+	else if (ft_memcmp(i->f_ptr + swap_little_endian(fat_arch->offset),
+				ARMAG, SARMAG))
+		ft_putendstr(filename, ":\n");
 }
 
 static void	process_fat_file(void *ptr, char *f_name, int nb_file, t_info *i)
@@ -48,7 +50,7 @@ static void	process_fat_file(void *ptr, char *f_name, int nb_file, t_info *i)
 			(*i).is_ppc = 1;
 		else
 			(*i).is_ppc = 0;
-		print_arch_name(fat_header, f_name, get_cputype(ptr, c, *i));
+		print_arch_name(fat_header, f_name, get_cputype(ptr, c, *i), i);
 		new_ptr = (void*)ptr + swap_little_endian(fat_arch->offset);
 		if ((*i).f_ptr > new_ptr || (*i).f_ptr + (*i).size_file < new_ptr)
 			break ;
