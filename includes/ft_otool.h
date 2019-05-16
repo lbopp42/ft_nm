@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/15 14:56:27 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/16 09:55:09 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,14 +68,14 @@ void			handle_fat_file(const void *ptr, char *filename,
 /*
 **	HANDLE_MACHO.C
 */
-void		handle_64(void *ptr, t_info *i, char *filename, int nb_file);
-void		handle(void *ptr, t_info *i, char *filename, int nb_file);
+void			handle_64(void *ptr, t_info *i, char *filename, int nb_file);
+void			handle(void *ptr, t_info *i, char *filename, int nb_file);
 
 /*
 **	SEARCH_HOST.C
 */
-int			search_host_arch(void *ptr, int nb_file, t_info *i);
-int			search_host_arch_64(void *ptr, int nb_file,
+int				search_host_arch(void *ptr, int nb_file, t_info *i);
+int				search_host_arch_64(void *ptr, int nb_file,
 		t_info *info);
 
 /*
@@ -103,14 +103,15 @@ char			*get_cputype(void *ptr, int i, t_info info);
 /*
 **	BROWSE_SYMTAB.C
 */
-void		browse_symtab(void *array, struct symtab_command *symtab,
+void			browse_symtab(void *array, struct symtab_command *symtab,
 		void *ptr, t_info *i);
 
 /*
 **	PRINT_TEXT_SECTION.C
 */
-void		print_section_text(void *ptr, struct segment_command *seg,
+void			print_section_text(void *ptr, struct segment_command *seg,
 		t_info i);
-void		print_section_text_64(void *ptr, struct segment_command_64 *seg);
+void			print_section_text_64(void *ptr, 
+		struct segment_command_64 *seg);
 
 #endif

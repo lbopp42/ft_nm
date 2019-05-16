@@ -6,13 +6,13 @@
 #    By: lbopp <marvin@42.fr>                       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/12 10:03:24 by lbopp             #+#    #+#              #
-#    Updated: 2019/05/15 14:56:10 by lbopp            ###   ########.fr        #
+#    Updated: 2019/05/15 18:14:50 by lbopp            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NM = ft_nm
 OTOOL = ft_otool
-CFLAGS = -Wall -Werror -Wextra -g -fsanitize=address
+CFLAGS = -Wall -Werror -Wextra
 LIBFT = libft/
 CC = clang
 SRC_NAME_NM = nm/ft_nm.c\
@@ -49,11 +49,14 @@ RM = rm -f
 
 .PHONY: all, clean, fclean, re
 
-all: nm_otool
+all: $(NM) $(OTOOL)
 
-nm_otool: $(OBJ_NM) $(OBJ_OTOOL)
+$(NM): $(OBJ_NM)
 	make -C libft
 	$(CC) $(CFLAGS) -o $(NM) $(OBJ_NM) -I includes/ft_nm.h -I libft/includes -lft -L libft
+
+$(OTOOL): $(OBJ_OTOOL)
+	make -C libft
 	$(CC) $(CFLAGS) -o $(OTOOL) $(OBJ_OTOOL) -I includes/ft_otool.h -I libft/includes -lft -L libft
 
 %.o: %.c

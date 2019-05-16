@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/08 10:03:26 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/08 16:01:19 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/16 09:53:47 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,11 @@ void	print_tab(int tab[], int size)
 	i = 0;
 	while (i < size)
 	{
-		printf("%d ", tab[i]);
+		ft_putnbr(tab[i]);
+		ft_putchar(' ');
 		i++;
 	}
-	printf("\n");
+	ft_putchar('\n');
 }
 
 int		partitionnement(t_data **data, int premier, int dernier)
