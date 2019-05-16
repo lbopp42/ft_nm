@@ -6,7 +6,7 @@
 /*   By: lbopp <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/12 10:42:04 by lbopp             #+#    #+#             */
-/*   Updated: 2019/05/16 09:55:09 by lbopp            ###   ########.fr       */
+/*   Updated: 2019/05/16 10:25:12 by lbopp            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ void			browse_symtab(void *array, struct symtab_command *symtab,
 */
 void			print_section_text(void *ptr, struct segment_command *seg,
 		t_info i);
-void			print_section_text_64(void *ptr, 
+void			print_section_text_64(void *ptr,
 		struct segment_command_64 *seg);
 
 #endif
